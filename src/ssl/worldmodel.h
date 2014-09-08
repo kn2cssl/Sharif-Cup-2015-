@@ -57,6 +57,7 @@ public:
         //-------Third Mission---------
         bool isAttacker;
         QList<Ball> balls;
+        QList<Position> ballsWithoutSpeed;
         Circle2D circularBorder;
         Circle2D goal1;
         Circle2D goal2;

@@ -78,18 +78,40 @@ void SSLVision::parse(SSL_DetectionFrame &pck)
 
     // insert balls
     int max_balls=min(VOBJ_MAX_NUM, pck.balls_size());
+    _wm->ballsWithoutSpeed.clear();
     for(int i=0; i<max_balls; ++i)
     {
         auto b = pck.balls(i);
-        if(b.has_confidence() && b.has_x() && b.has_y())
-            if(b.confidence() > MIN_CONF && fabs(b.x()) < FIELD_MAX_X && fabs(b.y()) < FIELD_MAX_Y)
-            {
-                Position tp;
-                tp.loc = Vector2D(b.x()*ourSide, b.y()*ourSide);
-                pt.push_back(tp);
-            }
+//        if(b.has_confidence() && b.has_x() && b.has_y())
+//            if(b.confidence() > MIN_CONF && fabs(b.x()) < FIELD_MAX_X && fabs(b.y()) < FIELD_MAX_Y)
+//            {
+//                Position tp;
+//                tp.loc = Vector2D(b.x()*ourSide, b.y()*ourSide);
+//                pt.push_back(tp);
+//            }
+        // gand started
+        if(fabs(b.x()) < FIELD_MAX_X && fabs(b.y()) < FIELD_MAX_Y)
+        {
+            Position tp;
+            tp.loc = Vector2D(b.x()*ourSide, b.y()*ourSide);
+            pt.push_back(tp);
+//            _wm->ballsWithoutSpeed.push_back(tp);
+//            qDebug()<<"ball"<<i<<":"<<tp.loc.x<<","<<tp.loc.y;
+        }
+
+        // end gand
+
     }
     _wm->ball.seenAt(pt, time, cid);
+
+//    for(int i=0;i<pt.size();i++)
+//    {
+//        Ball temp_ball;
+//        temp_ball = _wm->balls.at(i);
+//        temp_ball.seenAt(pt, time, cid);
+//        _wm->balls.insert(i,temp_ball);
+//    }
+
 
     if(_color == COLOR_BLUE)
     {
@@ -102,4 +124,23 @@ void SSLVision::parse(SSL_DetectionFrame &pck)
         APPEND_ROBOTS(blue, opp);
     }
 
+}
+
+int SSLVision::findNearestBall(Position ball, QList<Position> balls)
+{
+    double dist = 1000000000000000;
+    int index = -1;
+    for(int i=0;i<balls.size();i++)
+    {
+        double dist2 = ball.loc.dist2(balls.at(i).loc);
+        if(dist2<dist)
+        {
+            if(dist2<10000)
+            {
+                dist = dist2;
+                index = i;
+            }
+        }
+    }
+    return index;
 }

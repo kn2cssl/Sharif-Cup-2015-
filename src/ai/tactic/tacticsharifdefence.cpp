@@ -1,4 +1,4 @@
-#include "tacticsharifdefence.h"
+﻿#include "tacticsharifdefence.h"
 
 TacticSharifDefence::TacticSharifDefence(WorldModel *worldmodel, QObject *parent) :
     Tactic("TacticSharifDefence", worldmodel, parent)
@@ -6,8 +6,8 @@ TacticSharifDefence::TacticSharifDefence(WorldModel *worldmodel, QObject *parent
     circularBorder.assign(Vector2D(1500,0),1700/2);
     circularBorderOut.assign(Vector2D(1500,0),2100/2);// a circle may use to push balls with some risks
     circularMid.assign(Vector2D(1500,0),720); // a circle which is between holes and border circle
-    hole1.assign(Vector2D(1500,1700/4),250);
-    hole2.assign(Vector2D(1500,-1700/4),250);
+    hole1.assign(Vector2D(1500,1700/4),250/2);
+    hole2.assign(Vector2D(1500,-1700/4),250/2);
     Vector2D Cdist = (hole1.center() - circularBorder.center());
     double deltaAngle=1.1*asin(hole1.radius()/(Cdist.length())); // 1.1 is safety factor
     Uangle1=Cdist.dir().radian() + deltaAngle ;
@@ -24,6 +24,7 @@ RobotCommand TacticSharifDefence::getCommand()
     if(!wm->ourRobot[id].isValid) return rc;
     rc.fin_pos.loc=circularBorder.center(); //
     rc.maxSpeed = 1.4;
+    rc.useNav=true;
 
     addData();
     //sortData();
@@ -70,14 +71,15 @@ RobotCommand TacticSharifDefence::getCommand()
             state=1;
             //qDebug() << " ANYIN is FFFFFFFFFFFFFFALSE";
 
-                //qDebug() << " POINT . X = "  <<  point.x << "          POINT . Y =" << point.y;
-                Vector2D nrstpnt = (point - circularBorderOut.center());//findnearesthole(point));//
-                rc.fin_pos.dir = nrstpnt.dir().radian() ;
-                nrstpnt=nrstpnt.setLength(circularMid.radius()-70);//300);//
-                //Vector2D diff = nrstpnt;
-                nrstpnt=nrstpnt + circularBorderOut.center();//findnearesthole(point) ;//
-                //qDebug() << " X  = " << nrstpnt.x << "   Y =  " << nrstpnt.y;
-                rc.fin_pos.loc=nrstpnt;//goOncircle2point(nrstpnt);
+            //qDebug() << " POINT . X = "  <<  point.x << "          POINT . Y =" << point.y;
+            Vector2D nrstpnt = (point - circularBorderOut.center());//findnearesthole(point));//
+            rc.fin_pos.dir = nrstpnt.dir().radian() ;
+            nrstpnt=nrstpnt.setLength(circularMid.radius()-70);//300);//
+            //Vector2D diff = nrstpnt;
+            nrstpnt=nrstpnt + circularBorderOut.center();//findnearesthole(point) ;//
+            //qDebug() << " X  = " << nrstpnt.x << "   Y =  " << nrstpnt.y;
+            rc.fin_pos.loc=nrstpnt;//goOncircle2point(nrstpnt);
+            rc.useNav=true;
 
         }
 
@@ -138,7 +140,9 @@ RobotCommand TacticSharifDefence::getCommand()
 
 
         }
+
     }
+
     else if(towardH1 && !towardH2 && (vel.length() > minVel) )
     {
         state=2;
@@ -149,6 +153,7 @@ RobotCommand TacticSharifDefence::getCommand()
         nrstpnt=nrstpnt + hole1.center();//findnearesthole(point) ;//
         rc.fin_pos.loc=nrstpnt;
     }
+
     else if(towardH2 && !towardH1 && (vel.length() > minVel) )
     {
         state=3;
@@ -159,6 +164,7 @@ RobotCommand TacticSharifDefence::getCommand()
         nrstpnt=nrstpnt + hole2.center();//findnearesthole(point) ;//
         rc.fin_pos.loc=nrstpnt;
     }
+
     else if(towardH1 && towardH2 && (vel.length() > minVel) )
     {
         state=4;
@@ -177,6 +183,7 @@ RobotCommand TacticSharifDefence::getCommand()
             rc.fin_pos.dir = distH2.dir().radian();
         }
     }
+
     //Vector2D diff2 = nrstpnt - point2;// wm->ourRobot[id].pos.loc ;
     //bool reach=false;
 
@@ -184,79 +191,119 @@ RobotCommand TacticSharifDefence::getCommand()
     qDebug() << " S T A T E  =  " << state;
     //qDebug() << "                                     ANY IN " << AnyIn ;
     //rc.fin_pos.loc=Vector2D(0,0);
-    rc.maxSpeed = 2;
-    rc.isBallObs = false;
-    rc.isKickObs = true;
-    return rc;
-}
-// ==================================================================================
-void TacticSharifDefence::addData()
-{
-
-    balls.clear();
-    balls.insert(0,&wm->ball);//wm->ourRobot[0].pos.loc);
-
-    //balls.insert(1,&wm->ourRobot[1]);
-    //balls.insert(2,wm->ourRobot[2].pos.loc);
-
-    oppIsInField = wm->oppRobot[4].isValid;
-    OppositeRobot = wm->oppRobot[4].pos.loc;
-}
-
-// ==================================================================================
-//Vector2D TacticSharifDefence::findnearest(Vector2D input)
-//{
-//    //int tmp = 0 ;
-//    double dist;
-//    Vector2D point=Vector2D(1000000,1000000);//,point2;
-//    for(int k=0;k<segList.size();k++)
-//    {
-//        dist=(input-point).length2();
-//        if((input-segList.at(k).nearestPoint(input)).length2()<dist) point=segList.at(k).nearestPoint(input);
-
-//    }
-//    return point;
-//}
-
-
-// ==================================================================================
-void TacticSharifDefence::sortData()
-{
-    for(int i=0;i<balls.size();i++)
+    Segment2D b2f(wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+    if(hole1.HasIntersection(b2f) && !hole2.HasIntersection(b2f))
     {
-        //for(int j=0;j<segList.size();j++)
-        //{
-        for(int k=i+1;k<balls.size();k++)
+        qDebug() << " !!!!!!!!!!!!!   HOLE 1 !!!!!!!!!!!!!!!!!! ";// b2f.
+        Vector2D err=rc.fin_pos.loc - wm->ourRobot[id].pos.loc;
+        err.setDir(err.dir().radian() + M_PI/2);
+        err.setLength(500);
+        rc.fin_pos.loc=hole1.center() + err;
+    }
+    else if(hole2.HasIntersection(b2f) && !hole1.HasIntersection(b2f))
+    {
+        qDebug() << " !!!!!!!!!!!!!   HOLE 2 !!!!!!!!!!!!!!!!!! ";// b2f.
+        Vector2D err=rc.fin_pos.loc - wm->ourRobot[id].pos.loc;
+        err.setDir(err.dir().radian() + M_PI/2);
+        err.setLength(500);
+        rc.fin_pos.loc=hole2.center() + err;
+    }
+    else if(hole2.HasIntersection(b2f) && hole1.HasIntersection(b2f))
+    {
+        if((wm->ourRobot[id].pos.loc-hole2.center()).length2() > (wm->ourRobot[id].pos.loc-hole1.center()).length2())
         {
-            if( (balls.at(i)->pos.loc-circularBorder.center()).length2()
-                    > (balls.at(k)->pos.loc-circularBorder.center()).length2() ) balls.swap(i,k);
+            qDebug() << " !!!!!!!!!!!!!   HOLE 1 va 2222 !!!!!!!!!!!!!!!!!! ";// b2f.
+            Vector2D err=rc.fin_pos.loc - wm->ourRobot[id].pos.loc;
+            err.setDir(err.dir().radian() + M_PI/2);
+            err.setLength(500);
+            rc.fin_pos.loc=hole1.center() + err;
         }
-        //}
+        else
+        {
+            qDebug() << " !!!!!!!!!!!!!   HOLE 2 va 11111 !!!!!!!!!!!!!!!!!! ";// b2f.
+            Vector2D err=rc.fin_pos.loc - wm->ourRobot[id].pos.loc;
+            err.setDir(err.dir().radian() + M_PI/2);
+            err.setLength(500);
+            rc.fin_pos.loc=hole2.center() + err;
+//            Line2D j;
+//            j.
+        }
+
+    }
+                rc.useNav=true;
+                rc.maxSpeed = 0.5;
+                rc.isBallObs = true;//false;
+                rc.isKickObs = true;
+                return rc;
+    }
+                // ==================================================================================
+                void TacticSharifDefence::addData()
+        {
+
+                balls.clear();
+                balls.insert(0,&wm->ball);//wm->ourRobot[0].pos.loc);
+
+                //balls.insert(1,&wm->ourRobot[1]);
+                //balls.insert(2,wm->ourRobot[2].pos.loc);
+
+                oppIsInField = wm->oppRobot[4].isValid;
+                OppositeRobot = wm->oppRobot[4].pos.loc;
+    }
+
+                // ==================================================================================
+                //Vector2D TacticSharifDefence::findnearest(Vector2D input)
+                //{
+                //    //int tmp = 0 ;
+                //    double dist;
+                //    Vector2D point=Vector2D(1000000,1000000);//,point2;
+                //    for(int k=0;k<segList.size();k++)
+                //    {
+                //        dist=(input-point).length2();
+                //        if((input-segList.at(k).nearestPoint(input)).length2()<dist) point=segList.at(k).nearestPoint(input);
+
+                //    }
+                //    return point;
+                //}
+
+
+                // ==================================================================================
+                void TacticSharifDefence::sortData()
+        {
+                for(int i=0;i<balls.size();i++)
+        {
+                //for(int j=0;j<segList.size();j++)
+                //{
+                for(int k=i+1;k<balls.size();k++)
+        {
+                if( (balls.at(i)->pos.loc-circularBorder.center()).length2()
+                    > (balls.at(k)->pos.loc-circularBorder.center()).length2() ) balls.swap(i,k);
+    }
+                //}
 
     }
 
-}
-// ==================================================================================
-void TacticSharifDefence::goOncircle2point(Vector2D pnt)
-{
-
-}
-
-// =================================================================================
-Vector2D TacticSharifDefence::findnearest2circle()
-{
-    int tmp=0;
-    for(int k=0;k<balls.size();k++)
-    {
-        if( (balls.at(k)->pos.loc-circularBorder.center()).length2() < (balls.at(tmp)->pos.loc-circularBorder.center()).length2()) tmp=k;
     }
-    return balls.at(tmp)->pos.loc;
-}
-// ==================================================================================
-Vector2D TacticSharifDefence::findnearesthole(Vector2D pnt)
-{
-    if( (pnt-hole1.center()).length2() < (pnt-hole2.center()).length2() ) return hole1.center();
-    else return hole2.center();
-}
-// ==================================================================================
-// ==================================================================================
+                // ==================================================================================
+                void TacticSharifDefence::goOncircle2point(Vector2D pnt)
+        {
+
+    }
+
+                // =================================================================================
+                Vector2D TacticSharifDefence::findnearest2circle()
+        {
+                int tmp=0;
+                for(int k=0;k<balls.size();k++)
+        {
+                if( (balls.at(k)->pos.loc-circularBorder.center()).length2() < (balls.at(tmp)->pos.loc-circularBorder.center()).length2()) tmp=k;
+    }
+                return balls.at(tmp)->pos.loc;
+    }
+                // ==================================================================================
+                Vector2D TacticSharifDefence::findnearesthole(Vector2D pnt)
+        {
+                if( (pnt-hole1.center()).length2() < (pnt-hole2.center()).length2() ) return hole1.center();
+                else return hole2.center();
+    }
+                // ==================================================================================
+                // ==================================================================================

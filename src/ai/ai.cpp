@@ -15,6 +15,7 @@
 #include "play/playmission1.h"
 #include "play/playmission2.h"
 #include "play/playmission3.h"
+#include "play/playstall.h"
 
 AI::AI(WorldModel *worldmodel, OutputBuffer *outputbuffer, QObject *parent) :
     QObject(parent),
@@ -44,6 +45,7 @@ AI::AI(WorldModel *worldmodel, OutputBuffer *outputbuffer, QObject *parent) :
     plays.append(new PlayMission1(wm));
     plays.append(new PlayMission2(wm));
     plays.append(new PlayMission3(wm));
+    plays.append(new PlayStall(wm));
 }
 
 void AI::Start()

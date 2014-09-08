@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QPainter>
 #include <QTimer>
+#include <QList>
+#include "shape.h"
 #include "soccer.h"
 #include "fpscounter.h"
 
@@ -27,7 +29,9 @@ public:
     explicit RenderArea(Soccer *sc);
 private:
     Soccer* _sc;
-    QBrush *brush_field, *brush_ball, *brush_yrobot, *brush_brobot, *brush_region1, *brush_region2 , *brush_holes,*brush_shape;
+    QBrush *brush_field, *brush_ball, *brush_yrobot, *brush_brobot, *brush_region1, *brush_region2
+    , *brush_holes,*brush_red_shape,*brush_blue_shape,*brush_green_shape,*brush_yellow_shape,*brush_cyan_shape,
+    *brush_violet_shape,*brush_black_shape;
     QTimer _timer;
     FPSCounter _fps;
 
@@ -36,6 +40,7 @@ signals:
 public slots:
     void refresh();
     void paintEvent(QPaintEvent *);
+    void DrawShapes_sharif(QList<Shape> list,QPainter &painter);
 
 };
 

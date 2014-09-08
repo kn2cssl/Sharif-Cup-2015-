@@ -4,6 +4,7 @@
 #include <QList>
 #include "geom.h"
 #include "3rdparty/stlastar.h"
+#include "QDebug"
 
 class WorldModel;
 

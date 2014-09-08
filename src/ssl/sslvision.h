@@ -30,6 +30,7 @@ private:
     WorldModel *_wm;
 
     void parse(SSL_DetectionFrame &pck);
+    int findNearestBall(Position ball,QList<Position> balls);
 
 private slots:
     void readPendingPacket(QByteArray data, QString ip, int port);

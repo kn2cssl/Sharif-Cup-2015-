@@ -171,7 +171,8 @@ SOURCES +=	main.cpp \
     ai/play/playmission1.cpp \
     ai/play/playmission2.cpp \
     ai/play/playmission3.cpp \
-    ai/tactic/tacticsharifdefence.cpp
+    ai/tactic/tacticsharifdefence.cpp \
+    ai/play/playstall.cpp
 
 HEADERS  += \
     etc/settings.h \
@@ -277,7 +278,8 @@ HEADERS  += \
     ai/play/playmission1.h \
     ai/play/playmission2.h \
     ai/play/playmission3.h \
-    ai/tactic/tacticsharifdefence.h
+    ai/tactic/tacticsharifdefence.h \
+    ai/play/playstall.h
 
 FORMS    +=	ui/mainwindow.ui
 

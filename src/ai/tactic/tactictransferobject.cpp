@@ -3,17 +3,12 @@
 TacticTransferObject::TacticTransferObject(WorldModel *worldmodel, QObject *parent) :
     Tactic("TacticTransferObject", worldmodel, parent)
 {
-    //    agentsR0.push_back(wm->oppRobot[0].pos.loc);
-    //    agentsR0.append(wm->oppRobot[1].pos.loc);
-    //    agentsR0.append(wm->oppRobot[2].pos.loc);
 
-    //    agentsR1.insert(0,wm->ourRobot[0].pos.loc);
-    //    agentsR1.insert(1,wm->oppRobot[4].pos.loc);
-    //    agentsR1.insert(2,wm->oppRobot[5].pos.loc);
-    //    region[0].assign(Vector2D(-1000,1500),Size2D(1000,500));
-    region[0].assign(Vector2D(1000,-500),Size2D(1000,1000));
-    region[1].assign(Vector2D(-1000,-2000),Size2D(1000,500));
+    region[0].assign(Vector2D(-500,-1500),Size2D(1000,1000));
+//    region[0].assign(Vector2D(1000,-500),Size2D(1000,1000));
+    region[1].assign(Vector2D(2000,500),Size2D(1000,1000));
     state=0;
+    rcpast=Vector2D(0,0);
     //index=0;
     firstInit=false;
 }
@@ -22,23 +17,25 @@ RobotCommand TacticTransferObject::getCommand()
 {
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
-
-    rc.maxSpeed = 0.8;
+    rc.useNav=true;
+    rc.maxSpeed = 1;
     //    qDebug() << " TOP LEFT.x = " <<region[0].topLeft().x << "    TOP LEFT . Y =  " << region[0].topLeft().y;
     //    qDebug() << " BOTTOM RIGHT.x = " <<region[0].bottomRight().x << "    BOTTOM ROGHT . Y =  " << region[0].bottomRight().y;
     //addData();
     mergeData();
     //qDebug()<< " IIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNN JAAAAA  !!!!!!!";
     sortData();
-    qDebug()<< " BALLL . X = " << wm->ball.pos.loc.x << " BALLL . Y = " <<  wm->ball.pos.loc.y;
-    if(region[0].IsInside(wm->ball.pos.loc)) qDebug() << " THE BALLLLL ISSS INNNNN SIDE !!!!!!!!!!!!!!!!!!!!!!1";
+
+    //qDebug()<< " BALLL . X = " << wm->ball.pos.loc.x << " BALLL . Y = " <<  wm->ball.pos.loc.y;
+    //if(region[0].IsInside(wm->ball.pos.loc)) qDebug() << " THE BALLLLL ISSS INNNNN SIDE !!!!!!!!!!!!!!!!!!!!!!1";
+
     index = -1;
     for(int i=0;i<mergedList.size();i++)
     {
         temp=0;
         if(!region[mergedList.at(i).goalRegion].IsInside(mergedList.at(i).pos))
         {
-            qDebug() <<" OBJECT :    " <<  mergedList.at(i).pos.x << " ------ Y = " << mergedList.at(i).pos.y;// TOOOOOOOOOOOOOOOOOOOSHE !!!!!!!" << index ;
+            //qDebug() <<" OBJECT :    " <<  mergedList.at(i).pos.x << " ------ Y = " << mergedList.at(i).pos.y;// TOOOOOOOOOOOOOOOOOOOSHE !!!!!!!" << index ;
             index=i;
             goalRegion=mergedList.at(i).goalRegion;
             temp=1;
@@ -49,14 +46,7 @@ RobotCommand TacticTransferObject::getCommand()
     }
 
 
-    //Vector2D point2 = region1.bottomRight();
-    //Vector2D point3 =wm->ball.pos.loc;
-    //qDebug()<<"count:"<<agentsR1.count();
-    //bool inside = region2.IsInside(wm->ball.pos.loc);
-    //qDebug() << "topleft:" << point.x << " ------- y : " << point.y << inside;//
-    //qDebug() << "topright:" << point2.x << " ------- y : " << point2.y;
-    //qDebug() << "ball:" << point3.x << " ------- y : " << point3.y;
-    //agentsR1.clear();
+
 
 
     if(index != -1)
@@ -78,7 +68,7 @@ RobotCommand TacticTransferObject::getCommand()
                 rc.useNav = true;
                 rc.fin_pos.loc=point2 - space2;
                 rc.fin_pos.dir=diff2.dir().radian();
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
                 if(reach) state = 1;
 
             }
@@ -86,11 +76,11 @@ RobotCommand TacticTransferObject::getCommand()
             case 1:{//Ready to Push
                 rc.useNav = false;
                 rc.maxSpeed=1.4;
-                rc.fin_pos.loc.x=point2.x - 100*(diff2.x)/(diff2.length());
-                rc.fin_pos.loc.y=point2.y - 100*(diff2.y)/(diff2.length());
+                rc.fin_pos.loc.x=point2.x - (100 + ROBOT_RADIUS)*(diff2.x)/(diff2.length());
+                rc.fin_pos.loc.y=point2.y - (100 + ROBOT_RADIUS)*(diff2.y)/(diff2.length());
                 rc.fin_pos.dir=diff2.dir().radian();
                 if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,200);
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
                 if(reach)
                     state = 2;
             }
@@ -98,17 +88,18 @@ RobotCommand TacticTransferObject::getCommand()
             case 2:{//Push
                 //Vector2D diff2 = region2.center() - wm->ourRobot[id].pos.loc ;
                 rc.useNav = false;
-                if(diff2.length() > 1500) diff2.setLength(1500);
+                //if(diff2.length() > 1500) diff2.setLength(1500);
                 // if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
-                if(((wm->ourRobot[id].pos.loc-point2).length())>300) state=0;
-                if(((wm->ourRobot[id].pos.loc-point2).length())<100) state=0;
+                diff2.setLength(200);
+                if(((wm->ourRobot[id].pos.loc-point2).length())>500) state=0;
+                if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<50) state=0;
                 Vector2D o2r = ( point2 - wm->ourRobot[id].pos.loc );
                 if(fabs(wm->ourRobot[id].pos.dir - o2r.dir().radian()) > AngleDeg::deg2rad(20))
                 {
                     qDebug() << " !!!! Out OF Direction !!!! " ;
                     state=1;//4;
                 }
-                rc.fin_pos.loc=point2 + diff2/5;
+                rc.fin_pos.loc=point2 + diff2;//5;
                 rc.fin_pos.dir=diff2.dir().radian();
                 reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
                 if(reach)
@@ -155,11 +146,17 @@ RobotCommand TacticTransferObject::getCommand()
     }
     //rc.fin_pos.loc=Vector2D(0,0);
     //rc.useNav = false;
-    qDebug()<< " ROBOT  :    " << wm->ourRobot[id].pos.loc.x << " ------ Y = " << wm->ourRobot[id].pos.loc.y ;
+    //qDebug()<< " ROBOT  :    " << wm->ourRobot[id].pos.loc.x << " ------ Y = " << wm->ourRobot[id].pos.loc.y ;
     //rc.fin_pos.loc=Vector2D(1300,0);
-    bool reachZ=wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,20,5);
-    if(reachZ) rc.fin_pos.loc=wm->ourRobot[id].pos.loc;
-    rc.maxSpeed = rc.maxSpeed;
+//    bool reachZ=wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,40,5);
+//    if(reachZ) rc.fin_pos.loc=wm->ourRobot[id].pos.loc;
+//    qDebug() << " USE NAVIGATION IS :   " << rc.useNav;
+    //rc.maxSpeed = 1.2;//rc.maxSpeed;
+
+    rc.fin_pos.loc.x=rcpast.x + 0.1*(rc.fin_pos.loc.x-rcpast.x);
+    rc.fin_pos.loc.y=rcpast.y + 0.1*(rc.fin_pos.loc.y-rcpast.y);
+    rcpast=rc.fin_pos.loc;
+
     rc.isBallObs = false;
     rc.isKickObs = true;
     return rc;
@@ -197,13 +194,13 @@ void TacticTransferObject::mergeData()
         mergedList.push_back(temp);
     }
 
-    //    for(int i=0;i<agentsR1.size();i++)
-    //    {
-    //        AgentsAndRegions temp;
-    //        temp.pos=agentsR1.at(i);
-    //        temp.goalRegion=1;
-    //        mergedList.insert(i+agentsR0.size(),temp);
-    //    }
+        for(int i=0;i<wm->shapes4Region2.size();i++)
+        {
+            AgentsAndRegions temp;
+            temp.pos=wm->shapes4Region2.at(i).position;
+            temp.goalRegion=1;
+            mergedList.push_back(temp);
+        }
 }
 
 void TacticTransferObject::sortData()
@@ -218,3 +215,5 @@ void TacticTransferObject::sortData()
 
     }
 }
+
+

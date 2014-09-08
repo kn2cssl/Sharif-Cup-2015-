@@ -25,6 +25,8 @@ private:
     QList<AgentsAndRegions> mergedList;
     //QList<Vector2D> a4sSorted;
     Rect2D region[2];
+
+    Vector2D rcpast;
     //Rect2D region2;
     bool firstInit;
     int state;

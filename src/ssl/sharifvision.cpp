@@ -1,16 +1,16 @@
 #include "sharifvision.h"
 
 SharifVision::SharifVision(QString ip, int port, WorldModel *wm, QObject *parent) :
-   SharifReceiver(ip,port,parent),
-   _wm(wm)
+    SharifReceiver(ip,port,parent),
+    _wm(wm)
 {
-   _time.start();
-   connect(this, SIGNAL(newSharifPacket(QByteArray,QString,int)), this, SLOT(readPendingPacket(QByteArray,QString,int)));
+    _time.start();
+    connect(this, SIGNAL(newSharifPacket(QByteArray,QString,int)), this, SLOT(readPendingPacket(QByteArray,QString,int)));
 
-   // Log
-   qDebug() << "SharifVision Initialization...";
-   qDebug() << "IP: " << ip;
-   qDebug() << "Port: " << port;
+    // Log
+    qDebug() << "SharifVision Initialization...";
+    qDebug() << "IP: " << ip;
+    qDebug() << "Port: " << port;
 }
 
 void SharifVision::parse(outputPacket &msg)
@@ -44,6 +44,8 @@ void SharifVision::parse(outputPacket &msg)
                 Segment2D seg(Vector2D(temp_seg.start_x(),temp_seg.start_y()),Vector2D(temp_seg.end_x(),temp_seg.end_y()));
                 _wm->borders.push_back(seg);
             }
+
+
             Vector2D end(msg.mission2_end_x(),msg.mission2_end_y());
             _wm->endPoint = end;
         }
@@ -56,21 +58,27 @@ void SharifVision::parse(outputPacket &msg)
             _wm->circularBorder = cirBorder;
 
             Vector2D goal1_center(msg.mission3_goal1_x(),msg.mission3_goal1_y());
+//            Vector2D goal1_center(1500,1700/4);
             Circle2D goal1(goal1_center,250);
             _wm->goal1 = goal1;
+//            _wm->oppRobot[0].pos.loc = goal1_center;
+//            _wm->oppRobot[0].isValid=true;
 
             Vector2D goal2_center(msg.mission3_goal2_x(),msg.mission3_goal2_y());
+//            Vector2D goal2_center(1500,-1700/4);
             Circle2D goal2(goal2_center,250);
             _wm->goal2 = goal2;
+//            _wm->oppRobot[1].pos.loc = goal2_center;
+//            _wm->oppRobot[1].isValid=true;
         }
 
-        qDebug()<<"World Model Initialize";
+        //qDebug()<<"World Model Initialize";
     }
     else if(msg.type() == 1)
     {
         shapes.clear();
-       _wm->clean();
-        qDebug()<<"Data Message Received...";
+        _wm->clean();
+        //qDebug()<<"Data Message Received...";
 
         _wm->numberOfShapes = msg.numberofshape();
         _wm->mission = msg.mission();
@@ -90,22 +98,49 @@ void SharifVision::parse(outputPacket &msg)
 
         if(msg.mission() == 1)
         {
+
             for(int i=0;i<shapes.size();i++)
             {
-                addToRegion1(shapes.at(i));
+                //                if(shapes.at(i).color == "yellow" || shapes.at(i).color == "blue" || shapes.at(i).color == "violet")
+                //                {
+                //                    addToRegion1(shapes.at(i));
+                //                }
+                //                else if(shapes.at(i).color == "red" || shapes.at(i).color == "green" || shapes.at(i).color == "cyan")
+                //                {
+                //                    addToRegion2(shapes.at(i));
+                //                }
+
+                if(shapes.at(i).type == "RECT")
+                {
+                    addToRegion1(shapes.at(i));
+                }
+                else //if(shapes.at(i).type == ""
+                {
+                    addToRegion2(shapes.at(i));
+                }
+
             }
-        qDebug()<<"sharif vis:"<<_wm->shapes4Region1.size();
         }
         else if(msg.mission() == 2)
         {
-
+            for(int i=0;i<shapes.size();i++)
+            {
+                if(shapes.at(i).type !="RECT")
+                {
+                    addToNegative(shapes.at(i));
+                }
+                else
+                {
+                    addToPositive(shapes.at(i));
+                }
+            }
         }
         else if(msg.mission() == 3)
         {
 
         }
 
-        qDebug()<<"World Model Updated";
+        //        qDebug()<<"World Model Updated";
     }
 
 }
@@ -127,20 +162,41 @@ void SharifVision::addToRegion2(Shape input)
     }
 }
 
-void SharifVision::readPendingPacket(QByteArray data, QString ip, int port)
+// GAND E MOHSEN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void SharifVision::addToNegative(Shape input)
 {
-    outputPacket message;
-    if(!message.ParseFromArray(data.data(),data.size()))
+    if(true)
     {
-        qDebug()<<"Parse failed";
-    }
-
-    if(message.IsInitialized())
-    {
-        parse(message);
-    }
-    else
-    {
-        qDebug()<<QString::fromStdString(message.InitializationErrorString());
+        _wm->negativeShapes.push_back(input);
     }
 }
+
+void SharifVision::addToPositive(Shape input)
+{
+    if(true)
+    {
+        _wm->positiveShapes.push_back(input);
+    }
+}
+
+
+
+    // END GAND E MOHSEN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    void SharifVision::readPendingPacket(QByteArray data, QString ip, int port)
+    {
+        outputPacket message;
+        if(!message.ParseFromArray(data.data(),data.size()))
+        {
+            qDebug()<<"Parse failed";
+        }
+
+        if(message.IsInitialized())
+        {
+            parse(message);
+        }
+        else
+        {
+            qDebug()<<QString::fromStdString(message.InitializationErrorString());
+        }
+    }

@@ -16,7 +16,7 @@ int PlayMission1::enterCondition()
 
 void PlayMission1::execute()
 {
-    tactics[0] = tTransfer;
+    tactics[7] = tTransfer;
     return ;
 
 }

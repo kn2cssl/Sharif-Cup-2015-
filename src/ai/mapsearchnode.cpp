@@ -168,11 +168,45 @@ QList<Circle2D> MapSearchNode::getObsCircle()
         result.append(c);
     }
 
+    // MISION I    ------------------------------------------------
     for(int i=0; i<wm->shapes4Region1.size(); i++)
     {
-        Circle2D c(wm->shapes4Region1.at(i).position, wm->shapes4Region1.at(i).roundedRadios + 350);
+        Circle2D c(wm->shapes4Region1.at(i).position, 2*wm->shapes4Region1.at(i).roundedRadios + 350);
+//        qDebug()<< " .................... NAVIGATION FOR SHAPES4REGION 1 ADDED ..................";
         result.append(c);
     }
+    for(int i=0; i<wm->shapes4Region2.size(); i++)
+    {
+        Circle2D c(wm->shapes4Region2.at(i).position, 2*wm->shapes4Region2.at(i).roundedRadios + 350);
+        result.append(c);
+//        qDebug()<< " .................... NAVIGATION FOR SHAPES4REGION 2 ADDED ..................";
+    }
+
+    // MISION II   ------------------------------------------------
+    for(int i=0; i<wm->negativeShapes.size(); i++)
+    {
+        Circle2D c(wm->negativeShapes.at(i).position, 2*wm->negativeShapes.at(i).roundedRadios + 350);
+        result.append(c);
+//        qDebug()<< " .................... NAVIGATION FOR NEGATIVE SHAPES ADDED ..................";
+    }
+
+    for(int i=0; i<wm->positiveShapes.size(); i++)
+    {
+        Circle2D c(wm->positiveShapes.at(i).position, 2*wm->positiveShapes.at(i).roundedRadios + 350);
+        result.append(c);
+//        qDebug()<< " .................... NAVIGATION FOR POSITIVE SHAPES ADDED ..................";
+    }
+//    qDebug() << " MISION = " << wm->mission ;
+    // MISION III   ------------------------------------------------
+//    if(wm->mission == 3)
+//    {
+//        Circle2D hole1(Vector2D(1500,1700/4),ROBOT_RADIUS+250/2+100);
+//        Circle2D hole2(Vector2D(1500,-1700/4),ROBOT_RADIUS+250/2+100);
+//        result.append(hole1);
+//        result.append(hole2);
+//        qDebug() << " !!!!!!!!!!   HOLES ADDED   !!!!!!!!!!!";
+//    }
+
 
     return result;
 }
