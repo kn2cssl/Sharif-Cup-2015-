@@ -3,4 +3,6 @@
 Ball::Ball() :
     MobileObject()
 {
+    checked = false;
+    frameCount = 0;
 }

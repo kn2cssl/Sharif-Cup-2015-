@@ -30,10 +30,12 @@ class MobileObject : public QObject
 public:
     explicit MobileObject();
     void seenAt(vector<Position> p, double t, int c);
+    //void assign(MobileObject input);
 
     bool isValid;
 
     Position pos;
+    //Position
     double time;
     int camera;
 

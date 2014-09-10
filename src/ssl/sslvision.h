@@ -28,9 +28,15 @@ private:
     FPSCounter _fpscam0;
     FPSCounter _fpscam1;
     WorldModel *_wm;
+    //bool firstTimeInitialize;
+
+    //Ball temp_ball;
+
+    QList<Ball*> good;
+    QList<Ball*> candidate;
 
     void parse(SSL_DetectionFrame &pck);
-    int findNearestBall(Position ball,QList<Position> balls);
+    int findNearestBall(Ball *ball, QList<Ball*> input_balls);
 
 private slots:
     void readPendingPacket(QByteArray data, QString ip, int port);

@@ -186,11 +186,11 @@
 //            painter.drawEllipse(QPoint(_sc->wm->ball.pos.loc.x/WORLD_SCALE,-_sc->wm->ball.pos.loc.y/WORLD_SCALE),BALL_R,BALL_R);
 //        }
 
-        for(int i=0;i<_sc->wm->ballsWithoutSpeed.size();i++)
+       for(int i=0;i<_sc->wm->balls.size();i++)
         {
             painter.setPen(QColor::fromRgb(200,100,0));
             painter.setBrush(*brush_ball);
-            painter.drawEllipse(QPoint(_sc->wm->ballsWithoutSpeed.at(i).loc.x/WORLD_SCALE,-_sc->wm->ballsWithoutSpeed.at(i).loc.y/WORLD_SCALE),BALL_R,BALL_R);
+            painter.drawEllipse(QPoint(_sc->wm->balls.at(i)->pos.loc.x/WORLD_SCALE,-_sc->wm->balls.at(i)->pos.loc.y/WORLD_SCALE),BALL_R,BALL_R);
         }
 
         // TEST

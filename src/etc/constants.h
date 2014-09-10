@@ -16,6 +16,8 @@
 
 #define NUMOFDEFENDERS 3
 
+#define MaxNumberOfBalls 10
+
 
 // rules constants
 #define ALLOW_NEAR_BALL_RANGE 600

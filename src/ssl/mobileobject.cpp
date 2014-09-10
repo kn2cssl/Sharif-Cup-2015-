@@ -98,6 +98,18 @@ void MobileObject::seenAt(vector<Position> p, double t, int c)
     pos = res.pos;
 }
 
+//void MobileObject::assign(MobileObject input)
+//{
+//    this->pos = input.pos;
+//    this->time = input.time;
+//    this->camera = input.camera
+//            ;
+
+//    input.
+
+//    Position vel;
+//}
+
 void MobileObject::appendPostc(PositionTimeCamera &postc)
 {
     for(int i = LAST_COUNT-1; i>0; i--)

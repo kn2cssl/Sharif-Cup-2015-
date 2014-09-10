@@ -18,6 +18,8 @@ RobotCommand TacticPush2Goal::getCommand()
     oppIsValid=wm->ourRobot[0].isValid;// opposite robot
     opp=wm->ourRobot[0].pos.loc;
     bool reach=false;
+    AllIn=true;
+    AnyIn=false;
 
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
@@ -35,6 +37,7 @@ RobotCommand TacticPush2Goal::getCommand()
         rc.fin_pos.loc=circularBorder2.nearestpoint(balls.at(tah)->pos.loc);
         rc.fin_pos.dir=(circularBorder.center()-rc.fin_pos.loc).dir().radian();
     }
+    
     for(int i=0;i<balls.size();i++)
     {
 
@@ -43,6 +46,9 @@ RobotCommand TacticPush2Goal::getCommand()
         IsInside    =circularBorder2.contains(balls.at(i)->pos.loc);// toop revaal nist
         unAccessible=circularBorder   .contains(balls.at(i)->pos.loc); // toop daakhele mohavvateye emtiaaz manfi ast
 
+        if(!IsInside) AllIn = false;
+        else if(IsInside) AnyIn = true;
+        
         if(!unAccessible)
         {
             index=i;
@@ -66,6 +72,16 @@ RobotCommand TacticPush2Goal::getCommand()
     if(!IsInside )
     {
         Vector2D point2 = balls.at(index)->pos.loc;
+        Vector2D dist1 = balls.at(index)->pos.loc- hole1.center() ;
+        Vector2D dist2 = balls.at(index)->pos.loc- hole2.center() ;
+        if(dist2.length2()>dist1.length2())
+        {
+            vec2goal = (hole1.center() - point2);
+        }
+        else
+        {
+            vec2goal = (hole2.center() - point2);
+        }
         Vector2D nrstpnt = (circularBorder.center()-point2); //nearest Point
         nrstpnt=nrstpnt.setLength(nrstpnt.length()-circularBorder2.radius());
         diff2 = nrstpnt;

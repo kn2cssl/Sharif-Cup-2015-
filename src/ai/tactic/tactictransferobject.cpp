@@ -10,7 +10,7 @@ TacticTransferObject::TacticTransferObject(WorldModel *worldmodel, QObject *pare
     state=0;
     rcpast=Vector2D(0,0);
     //index=0;
-    firstInit=false;
+    firstInit=true;//false;
 }
 
 RobotCommand TacticTransferObject::getCommand()
@@ -21,7 +21,7 @@ RobotCommand TacticTransferObject::getCommand()
     rc.maxSpeed = 1;
     //    qDebug() << " TOP LEFT.x = " <<region[0].topLeft().x << "    TOP LEFT . Y =  " << region[0].topLeft().y;
     //    qDebug() << " BOTTOM RIGHT.x = " <<region[0].bottomRight().x << "    BOTTOM ROGHT . Y =  " << region[0].bottomRight().y;
-    //addData();
+    addData();
     mergeData();
     //qDebug()<< " IIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNN JAAAAA  !!!!!!!";
     sortData();

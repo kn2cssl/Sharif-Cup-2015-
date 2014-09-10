@@ -198,14 +198,14 @@ QList<Circle2D> MapSearchNode::getObsCircle()
     }
 //    qDebug() << " MISION = " << wm->mission ;
     // MISION III   ------------------------------------------------
-//    if(wm->mission == 3)
-//    {
-//        Circle2D hole1(Vector2D(1500,1700/4),ROBOT_RADIUS+250/2+100);
-//        Circle2D hole2(Vector2D(1500,-1700/4),ROBOT_RADIUS+250/2+100);
-//        result.append(hole1);
-//        result.append(hole2);
+    if(wm->mission == 3)
+    {
+        Circle2D hole1(Vector2D(1500,1700/4),ROBOT_RADIUS+250/2+100);
+        Circle2D hole2(Vector2D(1500,-1700/4),ROBOT_RADIUS+250/2+100);
+        result.append(hole1);
+        result.append(hole2);
 //        qDebug() << " !!!!!!!!!!   HOLES ADDED   !!!!!!!!!!!";
-//    }
+    }
 
 
     return result;

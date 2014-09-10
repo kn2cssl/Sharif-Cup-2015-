@@ -17,10 +17,10 @@ int PlayMission3::enterCondition()
 
 void PlayMission3::execute()
 {
-    if(wm->isAttacker)
+//    if(wm->isAttacker)
         tactics[7] = tAttacker;
-    else
-        tactics[7] = tDefender;
+//    else
+        tactics[8] = tDefender;
     return ;
 
 }

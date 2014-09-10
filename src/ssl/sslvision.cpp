@@ -19,6 +19,8 @@ SSLVision::SSLVision(QString ip, int port, TeamColorType color, TeamSideType sid
     qDebug() << "Color: " << (color==COLOR_BLUE?"Blue":"Yellow");
     qDebug() << "Side: " << (side==SIDE_RIGHT?"Right":"Left");
     qDebug() << "Camera: " << ((int)camera);
+
+    //firstTimeInitialize = false;
 }
 
 int SSLVision::getFPS(int c)
@@ -78,7 +80,7 @@ void SSLVision::parse(SSL_DetectionFrame &pck)
 
     // insert balls
     int max_balls=min(VOBJ_MAX_NUM, pck.balls_size());
-    _wm->ballsWithoutSpeed.clear();
+    //_wm->ballsWithoutSpeed.clear();
     for(int i=0; i<max_balls; ++i)
     {
         auto b = pck.balls(i);
@@ -104,14 +106,102 @@ void SSLVision::parse(SSL_DetectionFrame &pck)
     }
     _wm->ball.seenAt(pt, time, cid);
 
-//    for(int i=0;i<pt.size();i++)
-//    {
-//        Ball temp_ball;
-//        temp_ball = _wm->balls.at(i);
-//        temp_ball.seenAt(pt, time, cid);
-//        _wm->balls.insert(i,temp_ball);
-//    }
+    //_wm->numberOfBalls = pt.size();
 
+    QList<Ball*> ballList;
+
+    for(int i=0;i<pt.size();i++)
+    {
+        Ball *tBall = new Ball();
+        tBall->pos = pt.at(i);
+        ballList.push_back(tBall);
+        //delete tBall;
+    }
+     vector<Position> list;
+
+    for(int i=0;i<ballList.size();i++)
+    {
+        list.clear();
+
+        int index = findNearestBall(ballList.at(i),good);
+
+        if(index == -1)
+        {
+            index = findNearestBall(ballList.at(i),candidate);
+
+            if(index == -1)
+            {
+                candidate.push_back(ballList.at(i));
+//                list.push_back(ballList.at(i)->pos);
+                candidate.last()->checked = true;
+//                candidate.last()->seenAt(list, time, cid);
+            }
+            else
+            {
+                candidate.at(index)->frameCount++;
+                candidate.at(index)->checked = true;
+//                list.push_back(ballList.at(i)->pos);
+//                candidate.at(index)->seenAt(list, time, cid);
+            }
+        }
+        else
+        {
+            //good.at(index)->frameCount++;
+            good.at(index)->checked = true;
+            list.push_back(ballList.at(i)->pos);
+            good.at(index)->seenAt(list, time, cid);
+        }
+    }
+
+    for(int i=0;i<candidate.size();i++)
+    {
+        if(candidate.at(i)->checked)
+        {
+            candidate.at(i)->checked = false;
+            if( candidate.at(i)->frameCount > 20)
+            {
+                good.push_back(candidate.at(i));
+                good.last()->frameCount = 40;
+                candidate.removeAt(i);
+            }
+        }
+        else
+        {
+            candidate.at(i)->checked = false;
+            candidate.at(i)->frameCount--;
+            if( candidate.at(i)->frameCount <= 0)
+            {
+                candidate.removeAt(i);
+            }
+        }
+    }
+
+    for(int i=0;i<good.size();i++)
+    {
+        if(good.at(i)->checked)
+        {
+            good.at(i)->checked = false;
+        }
+        else
+        {
+            good.at(i)->checked = false;
+            good.at(i)->frameCount--;
+            if( good.at(i)->frameCount < 20)
+            {
+                candidate.push_back(good.at(i));
+                good.removeAt(i);
+            }
+        }
+    }
+
+    _wm->balls.clear();
+    for(int i=0;i<good.size();i++)
+    {
+        _wm->balls.push_back(good.at(i));
+//        qDebug() << " Frame Count = " << good.at(i)->frameCount ;
+    }
+
+//    qDebug()<<"scanned";
 
     if(_color == COLOR_BLUE)
     {
@@ -126,19 +216,22 @@ void SSLVision::parse(SSL_DetectionFrame &pck)
 
 }
 
-int SSLVision::findNearestBall(Position ball, QList<Position> balls)
+int SSLVision::findNearestBall(Ball *ball, QList<Ball *> input_balls)
 {
     double dist = 1000000000000000;
     int index = -1;
-    for(int i=0;i<balls.size();i++)
+    for(int i=0;i<input_balls.size();i++)
     {
-        double dist2 = ball.loc.dist2(balls.at(i).loc);
-        if(dist2<dist)
+        if(!input_balls.at(i)->checked)
         {
-            if(dist2<10000)
+            double dist2 = ball->pos.loc.dist2(input_balls.at(i)->pos.loc);
+            if(dist2<dist)
             {
-                dist = dist2;
-                index = i;
+                if(dist2<1000000)
+                {
+                    dist = dist2;
+                    index = i;
+                }
             }
         }
     }

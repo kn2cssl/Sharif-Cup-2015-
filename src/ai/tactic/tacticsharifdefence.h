@@ -13,12 +13,15 @@ public:
     void addData();
     void mergeData();
     void sortData();
+    void addVel();
     void goOncircle2point(Vector2D pnt);
     Vector2D findnearest2circle();
     Vector2D findnearesthole(Vector2D pnt);
 
 private:
     QList<Ball *> balls;//R0;
+    QList<Ball *> lastBalls;
+    //QList<Ball *> Aball;
     //QList<Vector2D> a4fSorted;
     //QList<Vector2D> agentsNegative;//R1;
     //QList<AgentsAndRegions> mergedList;
@@ -30,6 +33,7 @@ private:
     bool IsInside,IsInside2,Accessible,oppIsInField,AllIn,AnyIn,towardH1,towardH2;
     int state,state2;
     int index;
+    int loop;
     //int obs;
     //int goalRegion;
     int temp,temp2;
@@ -44,6 +48,7 @@ private:
     //Ray2D c2b;
     //Segment2D *seg[2]; // 2 segment line
     Vector2D vec2goal,OppositeRobot,point,p2o;//,c2o,origin,origin2;
+    Vector2D vel;
 };
 
 #endif // TACTICSHARIFDEFENCE_H

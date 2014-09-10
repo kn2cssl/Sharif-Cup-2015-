@@ -10,6 +10,9 @@ class Ball : public MobileObject
 public:
     explicit Ball();
 
+    bool checked;
+    int frameCount;
+
 };
 
 #endif // BALL_H

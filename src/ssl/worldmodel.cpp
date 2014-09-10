@@ -11,6 +11,8 @@ WorldModel::WorldModel(OutputBuffer *outputBuffer)
     gs_last = STATE_Null;
     isSim = false;
     kn = new Knowledge(this);
+//    numberOfBalls = 0;
+    numberOfShapes = 0;
 
     for(int i=0; i<PLAYERS_MAX_NUM; i++)
     {
@@ -29,6 +31,6 @@ void WorldModel::clean()
     shapes4Region2.clear();
     positiveShapes.clear();
     negativeShapes.clear();
-    balls.clear();
+    //balls.clear();
     obstacles.clear();
 }
