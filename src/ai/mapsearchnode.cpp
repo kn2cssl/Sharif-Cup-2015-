@@ -133,8 +133,11 @@ QList<Circle2D> MapSearchNode::getObsCircle()
 
     if(isBallObs && wm->ball.isValid)
     {
-        Circle2D c(wm->ball.pos.loc, b_rad);
+        for(int i=0;i<wm->balls.size();i++)
+        {
+        Circle2D c(wm->balls.at(i)->pos.loc, b_rad);
         result.append(c);
+        }
     }
 
     if(!isBallObs && isKickObs && wm->ball.isValid)

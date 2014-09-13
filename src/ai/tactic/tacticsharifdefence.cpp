@@ -8,6 +8,9 @@
         circularMid.assign(Vector2D(1500,0),720); // a circle which is between holes and border circle
         hole1.assign(Vector2D(1500,1700/4),250/2);
         hole2.assign(Vector2D(1500,-1700/4),250/2);
+        addHolePoints();
+        hole1_Offset.assign(Vector2D(1500,1700/4),350);
+        hole2_Offset.assign(Vector2D(1500,-1700/4),350);
         Vector2D Cdist = (hole1.center() - circularBorder.center());
         double deltaAngle=1.1*asin(hole1.radius()/(Cdist.length())); // 1.1 is safety factor
         Uangle1=Cdist.dir().radian() + deltaAngle ;
@@ -16,6 +19,7 @@
         Uangle2=Cdist.dir().radian() + deltaAngle ;
         Dangle2=Uangle2 - 2*deltaAngle;
         firstInit=true;
+
         loop=0;
 
 
@@ -26,11 +30,15 @@
         RobotCommand rc;
         if(!wm->ourRobot[id].isValid) return rc;
         rc.fin_pos.loc=circularBorder.center(); //
-        rc.maxSpeed = 1.4;
+        rc.maxSpeed = 1.7;
         rc.useNav=true;
         float minVel=0.2;
         towardH1=false;
         towardH2=false;
+        InHole=false;
+        bool reach;
+        oppIsInField=wm->ourRobot[7].isValid;
+        Opp=wm->ourRobot[7].pos.loc;
 
         addData();
 
@@ -44,7 +52,8 @@
         //qDebug() << " ANGLE     = " << (circularBorder.center()-balls.at(0)).dir().radian();
         for(int i=0;i<balls.size();i++)
         {
-
+            if(!hole1.contains(balls.at(i)->pos.loc) && !hole2.contains(balls.at(i)->pos.loc))
+            {
             //c2o = new Segment2D(circularBorderOut.center() , balls.at(i) );
             //temp=0;
             IsInside   = circularBorder  .contains(balls.at(i)->pos.loc);
@@ -64,6 +73,7 @@
                 qDebug() << " Ball # " << i << " Is Toward a Hole ";
                 break;
 
+            }
             }
 
             //            else
@@ -132,95 +142,89 @@
         {
             if(balls.size() > 0 )
             {
-                //            for(int k=0;k<balls.size();k++)
-                //            {
-
-                //            }
-                //                    qDebug() << " ball 1 = " << balls.size();
-                point=balls.at(0)->pos.loc;
-                //qDebug() << " POINT . X = "  <<  point.x << "          POINT . Y =" << point.y;
-                //        Vector2D nrstpnt = (point - circularBorderOut.center());//findnearesthole(point));//
-                //        rc.fin_pos.dir = nrstpnt.dir().radian() ;
-                //        nrstpnt=nrstpnt.setLength(circularMid.radius()-70);//300);//
-                //        //Vector2D diff = nrstpnt;
-                //        nrstpnt=nrstpnt + circularBorderOut.center();//findnearesthole(point) ;//
-                //        //qDebug() << " X  = " << nrstpnt.x << "   Y =  " << nrstpnt.y;
-                //        rc.fin_pos.loc=nrstpnt;//goOncircle2point(nrstpnt);
-
-
-                if(!oppIsInField && !AnyIn)
+                if(!oppIsInField)
                 {
-                    state=1;
-                    //qDebug() << " ANYIN is FFFFFFFFFFFFFFALSE";
+                    point=balls.at(0)->pos.loc;
 
-                    //qDebug() << " POINT . X = "  <<  point.x << "          POINT . Y =" << point.y;
-                    Vector2D nrstpnt = (point - circularBorderOut.center());//findnearesthole(point));//
-                    rc.fin_pos.dir = nrstpnt.dir().radian() ;
-                    nrstpnt=nrstpnt.setLength(circularMid.radius()-70);//300);//
-                    //Vector2D diff = nrstpnt;
-                    nrstpnt=nrstpnt + circularBorderOut.center();//findnearesthole(point) ;//
-                    //qDebug() << " X  = " << nrstpnt.x << "   Y =  " << nrstpnt.y;
-                    rc.fin_pos.loc=nrstpnt;//goOncircle2point(nrstpnt);
-                    rc.useNav=true;
-
-                }
-
-                else if(!oppIsInField && AnyIn)
-                {
-                    state=10;
-                    //qDebug() << " ANYIN is TRUE ";
-                    //                        point = balls.at(index)->pos.loc;
-                    Vector2D nrstpnt = circularBorder.center()-point;//findnearesthole(point)-point);
-                    Line2D ball2center(point,circularBorder.center());
-                    double ang=nrstpnt.dir().radian();
-                    //if (!(((ang < Uangle1 && ang > Dangle1) || (ang < Uangle2 && ang > Dangle2) ) && (nrstpnt.length2() < (circularBorder.center()-hole1.center()).length2())))//&& ang < Dangle1 && ang < Dangle2)
-                    if((hole1.HasIntersection(ball2center) || hole2.HasIntersection(ball2center)) && (nrstpnt.length2() < 1.1*(circularBorder.center()-hole1.center()).length2()) )
+                    if(!AnyIn)
                     {
-                        state=101;
-                        qDebug() << " NAKON TOO SOoooooooooooooooooooooORAAKH !!!";
-                        nrstpnt.setDir(nrstpnt.dir()+90);//M_PI/2);
-                        nrstpnt.setLength(150);
-                        rc.fin_pos.dir=nrstpnt.dir().radian()+M_PI;
-                        nrstpnt=point+nrstpnt;
-                        rc.fin_pos.loc=nrstpnt;
-                        bool reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
-                        if(reach)
-                        {
-                            nrstpnt = point - nrstpnt;
-                            nrstpnt.setLength(150);
-                            rc.fin_pos.dir=nrstpnt.dir().radian();//+M_PI;
-                            nrstpnt = point + nrstpnt;
-                            rc.fin_pos.loc=nrstpnt;
-                            rc.useNav=false;
-                        }
-                        //rc.fin_pos.loc=circularBorder.center();
-                    }
-                    else
-                    {
-                        state=102;
-                        //qDebug() << ang ;
-                        qDebug() << " biroon SOORAAKH !!!";
+//                        else
+//                        {
+                            nearest2Opp();
+                            point=balls.at(index)->pos.loc;
+//                        }
+                        state=1;
+                        //qDebug() << " ANYIN is FFFFFFFFFFFFFFALSE";
 
-                        nrstpnt.setDir(nrstpnt.dir());//+M_PI/2);
-                        nrstpnt.setLength(150);
-                        rc.fin_pos.dir=nrstpnt.dir().radian()+M_PI;
-                        nrstpnt=point+nrstpnt;
-                        rc.fin_pos.loc=nrstpnt;
-                        //rc.fin_pos.dir=nrstpnt.dir().radian();//+M_PI;
-                        bool reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,20);
-                        if(reach)
-                        {
-                            nrstpnt = point - nrstpnt;
-                            nrstpnt.setLength(150);
-                            rc.fin_pos.dir=nrstpnt.dir().radian();//+M_PI;
-                            nrstpnt = point + nrstpnt;
-                            rc.fin_pos.loc=nrstpnt;
-                            //rc.fin_pos.dir=nrstpnt.dir().radian()+M_PI;
-                            rc.useNav=false;
-                        }
+                        //qDebug() << " POINT . X = "  <<  point.x << "          POINT . Y =" << point.y;
+                        Vector2D nrstpnt = (point - circularBorderOut.center());//findnearesthole(point));//
+                        rc.fin_pos.dir = nrstpnt.dir().radian() ;
+                        nrstpnt=nrstpnt.setLength(circularMid.radius()+40);//300);//
+                        //Vector2D diff = nrstpnt;
+                        nrstpnt=nrstpnt + circularBorderOut.center();//findnearesthole(point) ;//
+                        //qDebug() << " X  = " << nrstpnt.x << "   Y =  " << nrstpnt.y;
+                        rc.fin_pos.loc=nrstpnt;//goOncircle2point(nrstpnt);
+                        rc.useNav=true;
+
                     }
 
+                    else if( AnyIn)
+                    {
+                        state=10;
+                        //qDebug() << " ANYIN is TRUE ";
+                        //                        point = balls.at(index)->pos.loc;
+                        Vector2D nrstpnt = circularBorder.center()-point;//findnearesthole(point)-point);
+                        Line2D ball2center(point,circularBorder.center());
+                        double ang=nrstpnt.dir().radian();
+                        //if (!(((ang < Uangle1 && ang > Dangle1) || (ang < Uangle2 && ang > Dangle2) ) && (nrstpnt.length2() < (circularBorder.center()-hole1.center()).length2())))//&& ang < Dangle1 && ang < Dangle2)
+                        if((hole1.HasIntersection(ball2center) || hole2.HasIntersection(ball2center)) && (nrstpnt.length2() < 1.1*(circularBorder.center()-hole1.center()).length2()) )
+                        {
+                            state=101;
+                            qDebug() << " NAKON TOO SOoooooooooooooooooooooORAAKH !!!";
+                            nrstpnt.setDir(nrstpnt.dir()+90);//M_PI/2);
+                            nrstpnt.setLength(150);
+                            rc.fin_pos.dir=nrstpnt.dir().radian()+M_PI;
+                            nrstpnt=point+nrstpnt;
+                            rc.fin_pos.loc=nrstpnt;
+                            bool reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
+                            if(reach)
+                            {
+                                nrstpnt = point - nrstpnt;
+                                nrstpnt.setLength(150);
+                                rc.fin_pos.dir=nrstpnt.dir().radian();//+M_PI;
+                                nrstpnt = point + nrstpnt;
+                                rc.fin_pos.loc=nrstpnt;
+                                rc.useNav=false;
+                            }
+                            //rc.fin_pos.loc=circularBorder.center();
+                        }
+                        else
+                        {
+                            state=102;
+                            //qDebug() << ang ;
+                            qDebug() << " biroon SOORAAKH !!!";
 
+                            nrstpnt.setDir(nrstpnt.dir());//+M_PI/2);
+                            nrstpnt.setLength(150);
+                            rc.fin_pos.dir=nrstpnt.dir().radian()+M_PI;
+                            nrstpnt=point+nrstpnt;
+                            rc.fin_pos.loc=nrstpnt;
+                            //rc.fin_pos.dir=nrstpnt.dir().radian();//+M_PI;
+                            bool reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,20);
+                            if(reach)
+                            {
+                                nrstpnt = point - nrstpnt;
+                                nrstpnt.setLength(150);
+                                rc.fin_pos.dir=nrstpnt.dir().radian();//+M_PI;
+                                nrstpnt = point + nrstpnt;
+                                rc.fin_pos.loc=nrstpnt;
+                                //rc.fin_pos.dir=nrstpnt.dir().radian()+M_PI;
+                                rc.useNav=false;
+                            }
+                        }
+
+
+                    }
                 }
 
 
@@ -233,9 +237,18 @@
         //rc.fin_pos.loc=Vector2D(0,0);
 
 
+//        if((wm->ourRobot[id].pos.loc-hole1.center()).length2() < (wm->ourRobot[id].pos.loc-hole2.center()).length2() )
+//        {
+          rc.fin_pos.loc=AvoidtoEnterCircle(hole1_Offset,hole1_V,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+//        reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
+//        }
+          rc.fin_pos.loc=AvoidtoEnterCircle(hole2_Offset,hole2_V,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+//        if(reach) rc.fin_pos.loc=AvoidtoEnterCircle(hole2_Offset,hole2_V,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
+
+//        if(InHole) rc.maxSpeed=1;
         rc.useNav=true;
-        rc.maxSpeed = 2;
+        rc.maxSpeed = 0.85;
         rc.isBallObs = true;//false;
         rc.isKickObs = true;
         return rc;
@@ -261,6 +274,23 @@
 
         //        firstInit=false;
         //        loop++;
+    }
+     // ==================================================================================
+    void TacticSharifDefence::addHolePoints()
+    {
+        double offset=200+ROBOT_RADIUS;
+        Vector2D vec;//=Vector2D(0,0);
+        for(int i=0;i<8;i++)
+        {
+//            vec.assign(
+            vec.assign(((hole1.radius()+offset)*cos(i*M_PI/4)),((hole1.radius()+offset)*sin((i/4)*M_PI)));
+//            vec.y=(hole1.radius()+offset)*sin(double(i/4)*M_PI);
+//            vec.setLength(hole1.radius()+offset);
+//            vec.setDir(double(i/4)*M_PI);
+            hole1_V[i]=hole1.center() + vec;
+            hole2_V[i]=hole2.center() + vec;
+        }
+
     }
 
     // ==================================================================================
@@ -315,6 +345,20 @@
     {
 
     }
+    // ==================================================================================
+    void TacticSharifDefence::nearest2Opp()
+    {
+        double dist1 = 1000000000000000;
+        for(int j=0;j<balls.size();j++)
+        {
+            if(((balls.at(j)->pos.loc-Opp).length2()) < dist1 )
+            {
+                dist1=(balls.at(j)->pos.loc-Opp).length2();
+                index=j;
+            }
+            //        qDebug() << " DIST  = " << dist1 ;
+        }
+    }
 
     // =================================================================================
     Vector2D TacticSharifDefence::findnearest2circle()
@@ -331,6 +375,70 @@
     {
         if( (pnt-hole1.center()).length2() < (pnt-hole2.center()).length2() ) return hole1.center();
         else return hole2.center();
+    }
+    // ==================================================================================
+    Vector2D TacticSharifDefence::AvoidtoEnterCircle(Circle2D Ci, Vector2D hole_V[], Vector2D pnt , Vector2D finPOS)
+    {
+//        Segment2D S(pnt,finPOS);
+//        Vector2D p;
+//        if(Ci.HasIntersection(S))
+//        {
+//            qDebug() << " HAS INTERSECTION WITH CIRCLE" << Ci.center().x << " , " << Ci.center().y <<
+//                        " !! DO NOT ENTER THIS CIRCLE PLEASE !!!";
+//            double dist1 = 1000000000000;
+//            for(int k=0;k<8;k++)
+//            {
+//                if(((finPOS-hole_V[k]).length2()) < dist1 )
+//                {
+//                    dist1=(finPOS-hole_V[k]).length2();
+//                    p = hole_V[k];
+//                }
+//                //        qDebug() << " DIST  = " << dist1 ;
+
+//            }
+//            InHole=true;
+//            return p;
+
+//        }
+//        else
+//        {
+//            return finPOS;
+//        }
+
+        Segment2D S(pnt,finPOS);
+        if(Ci.HasIntersection(S))
+        {
+            qDebug() << " HAS INTERSECTION WITH CIRCLE" << Ci.center().x << " , " << Ci.center().y <<
+                                    " !! DO NOT ENTER THIS CIRCLE PLEASE !!!";
+            Vector2D c2r = pnt - Ci.center() ;
+            Vector2D c2f = finPOS - Ci.center() ;
+            c2r.setLength(Ci.radius()+50);
+            AngleDeg angle=c2r.dir() - c2f.dir();
+            //double ang=c2r.dir().radian() - c2f.dir().radian();
+            if (angle.radian() > M_PI) angle -=  AngleDeg(M_PI) *= 2;
+            if (angle.radian() < -M_PI) angle += AngleDeg(M_PI) *= 2;
+
+            //if (ang > M_PI) ang -= 2 * M_PI;
+            //if (ang < -M_PI) ang += 2 * M_PI;
+
+            //qDebug() << "c2r DIRECTION = " << c2r.dir().degree() << "c2f DIRECTION = " << c2f.dir().degree() << "   ANGLE  = " << angle.degree() << "    ANG =" << ang*57.32;
+            angle=angle/=2;
+            if(fabs(angle.degree())<5)
+            {
+                angle=0;
+//                if(angle.degree()<0) angle=AngleDeg(-5);
+//                else angle=AngleDeg(5);
+            }
+            angle=c2r.dir() - angle;
+            c2r.setDir(angle);// c2f.dir()));
+            Vector2D p = Ci.center() + c2r ;
+            return p;
+        }
+        else
+        {
+            return finPOS;
+        }
+
     }
     // ==================================================================================
     // ==================================================================================

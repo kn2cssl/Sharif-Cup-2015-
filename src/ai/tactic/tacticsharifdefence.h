@@ -11,16 +11,20 @@ public:
     explicit TacticSharifDefence(WorldModel *worldmodel, QObject *parent = 0);
     virtual RobotCommand getCommand();
     void addData();
+    void addHolePoints();
     void mergeData();
     void sortData();
     void addVel();
     void goOncircle2point(Vector2D pnt);
+    void nearest2Opp();
     Vector2D findnearest2circle();
     Vector2D findnearesthole(Vector2D pnt);
+    Vector2D AvoidtoEnterCircle(Circle2D Ci , Vector2D hole_V[] , Vector2D pnt, Vector2D finPOS);
 
 private:
     QList<Ball *> balls;//R0;
     QList<Ball *> lastBalls;
+    Vector2D hole1_V[8],hole2_V[8];
     //QList<Ball *> Aball;
     //QList<Vector2D> a4fSorted;
     //QList<Vector2D> agentsNegative;//R1;
@@ -31,6 +35,7 @@ private:
     //Rect2D region2;
     bool firstInit;
     bool IsInside,IsInside2,Accessible,oppIsInField,AllIn,AnyIn,towardH1,towardH2;
+    bool InHole;
     int state,state2;
     int index;
     int loop;
@@ -39,7 +44,7 @@ private:
     int temp,temp2;
     int count;
     double Uangle1,Uangle2,Dangle1,Dangle2;
-    Circle2D circularBorder,circularBorderOut,hole1,hole2,circularMid;
+    Circle2D circularBorder,circularBorderOut,hole1,hole2,circularMid,hole1_Offset,hole2_Offset;
     Line2D *ballVel;//b2h1,*b2h2;
     //Segment2D *testseg;
     //Segment2D *tseg;
@@ -48,7 +53,7 @@ private:
     //Ray2D c2b;
     //Segment2D *seg[2]; // 2 segment line
     Vector2D vec2goal,OppositeRobot,point,p2o;//,c2o,origin,origin2;
-    Vector2D vel;
+    Vector2D vel,Opp;
 };
 
 #endif // TACTICSHARIFDEFENCE_H

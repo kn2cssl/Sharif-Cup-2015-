@@ -34,7 +34,7 @@ ControllerResult Controller::calc(ControllerInput &ci)
     ControllerResult ctrlresult;
 
     ctrlresult.rs = calcRobotSpeed_main(ci);
-    //ctrlresult.rs = calcRobotSpeed_adjt(ci);
+//    ctrlresult.rs = calcRobotSpeed_adjt(ci);
    // ctrlresult.rs = calcRobotSpeed_test(ci);
 
     ctrlresult.msR = calcReal(ctrlresult.rs);
