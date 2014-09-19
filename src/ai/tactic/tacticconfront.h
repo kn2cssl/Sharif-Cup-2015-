@@ -2,6 +2,7 @@
 #define TACTICCONFRONT_H
 
 #include "tactic.h"
+#include "shape.h"
 
 class TacticConfront: public Tactic
 {
@@ -13,7 +14,10 @@ public:
     void mergeData();
     void sortData();
     void addseg();
+    Vector2D AvoidtoEnterCircle(Circle2D Ci , Vector2D pnt, Vector2D finPOS);
     Vector2D findnearest(Vector2D input);
+    int findnearestObject(QList<Shape> list,Vector2D Pos);
+
 
 private:
     QList<Vector2D> agentsPositive;//R0;
@@ -27,7 +31,7 @@ private:
     bool firstInit;
     bool IsOverTheLine;
     bool DoNotEnterOpposedField;
-    bool CanKickOpp,OppIsInOurField,OppIsValid;
+    bool CanKickOpp,OppIsInhisField,OppIsValid;
     int state;
     int index;
     int obs;
@@ -41,5 +45,6 @@ private:
     Segment2D *o2o; // Origin to Object
     //Segment2D *seg[2]; // 2 segment line
     Vector2D origin,origin2,rcpast,Opp;
+    Circle2D ObsC;
 };
 #endif // TACTICCONFRONT_H
