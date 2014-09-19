@@ -117,6 +117,8 @@ void SSLVision::parse(SSL_DetectionFrame &pck)
         ballList.push_back(tBall);
         //delete tBall;
     }
+    
+    // Ball Filtering ..........
      vector<Position> list;
 
     for(int i=0;i<ballList.size();i++)
@@ -200,8 +202,9 @@ void SSLVision::parse(SSL_DetectionFrame &pck)
         _wm->balls.push_back(good.at(i));
 //        qDebug() << " Frame Count = " << good.at(i)->frameCount ;
     }
+    // End Of Ball Filtering ........
+    
 
-//    qDebug()<<"scanned";
 
     if(_color == COLOR_BLUE)
     {

@@ -2,7 +2,7 @@
 
 Shape::Shape()
 {
-
+    //position = new Vector2D();
 }
 
 void Shape::set(Vector2D position, double roundedRadios, std::string color, std::string type)

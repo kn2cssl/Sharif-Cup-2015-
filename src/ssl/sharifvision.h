@@ -4,6 +4,7 @@
 #include "sharifreceiver.h"
 #include "worldmodel.h"
 #include <Prototype_Messages/GameGround.pb.h>
+#include "shapefiltering.h"
 
 class SharifVision : public SharifReceiver
 {
@@ -15,13 +16,18 @@ private:
     QTime _time;
     WorldModel *_wm;
 
-    QList<Shape> shapes;
+    QList<ShapeFiltering> shapes;
+
+    QList<ShapeFiltering> good;
+    QList<ShapeFiltering> candidate;
 
     void parse(outputPacket &msg);
-    void addToRegion1(Shape input);
-    void addToRegion2(Shape input);
-    void addToNegative(Shape input);
-    void addToPositive(Shape input);
+    void addToRegion1(ShapeFiltering input);
+    void addToRegion2(ShapeFiltering input);
+    void addToNegative(ShapeFiltering input);
+    void addToPositive(ShapeFiltering input);
+
+    int findNearestShape(ShapeFiltering goal_shape, QList<ShapeFiltering> shape_list);
 
 private slots:
     void readPendingPacket(QByteArray data, QString ip, int port);

@@ -9,17 +9,17 @@ PlayMission3::PlayMission3(WorldModel *worldmodel, QObject *parent) :
 
 int PlayMission3::enterCondition()
 {
-//    if(wm->mission == 3)
+    if(wm->mission == 3)
         return 100000;
-//    else
-//        return 0;
+    else
+        return 0;
 }
 
 void PlayMission3::execute()
 {
-//    if(wm->isAttacker)
+    if(wm->isAttacker)
         tactics[7] = tAttacker;
-//    else
+    else
         tactics[8] = tDefender;
     return ;
 

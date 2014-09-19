@@ -19,12 +19,12 @@ public:
     void nearest2Opp();
     Vector2D findnearest2circle();
     Vector2D findnearesthole(Vector2D pnt);
-    Vector2D AvoidtoEnterCircle(Circle2D Ci , Vector2D hole_V[] , Vector2D pnt, Vector2D finPOS);
+    Vector2D AvoidtoEnterCircle(Circle2D Ci , Vector2D pnt, Vector2D finPOS);
 
 private:
     QList<Ball *> balls;//R0;
     QList<Ball *> lastBalls;
-    Vector2D hole1_V[8],hole2_V[8];
+//    Vector2D hole1_V[8],hole2_V[8];
     //QList<Ball *> Aball;
     //QList<Vector2D> a4fSorted;
     //QList<Vector2D> agentsNegative;//R1;
@@ -34,8 +34,8 @@ private:
     //Rect2D region[2];
     //Rect2D region2;
     bool firstInit;
-    bool IsInside,IsInside2,Accessible,oppIsInField,AllIn,AnyIn,towardH1,towardH2;
-    bool InHole;
+    bool IsInside,IsInside2,Accessible,oppIsInField,oppIsKhoraak,AllIn,AnyIn,towardH1,towardH2;
+    bool InHole,Avoided;
     int state,state2;
     int index;
     int loop;

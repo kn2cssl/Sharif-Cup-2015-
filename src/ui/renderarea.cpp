@@ -49,8 +49,8 @@
         painter.drawRect(CENTER_X,CENTER_Y-154,275,280); // Draw Camera region
 
         //      // //    Draw circle FOR MISION III
-//        if(_sc->wm->mission==3)
-//        {
+        if(_sc->wm->mission==3)
+        {
             painter.setBrush(*brush_field);
             painter.drawRect(CENTER_X-25,CENTER_Y-175,350,350);
 
@@ -68,7 +68,7 @@
             painter.drawEllipse(QPoint(150+CENTER_X,0+CENTER_Y-170/4),25/2,25/2);
 
 //            DrawShapes_sharif(_sc->wm->);
-//        }
+        }
 
         // FPS
         painter.drawText(20,20,QString::number(_fps.FPS()));

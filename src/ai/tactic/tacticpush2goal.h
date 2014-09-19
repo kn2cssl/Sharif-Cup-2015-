@@ -23,11 +23,12 @@ public:
 private:
     QList<Ball *> balls;
     QList<Ball *> byOpp;
-    double MAX_X , MAX_Y , MIN_X , MIN_Y ;
+    double MAX_X , MAX_Y , MIN_X , MIN_Y , mean_x , mean_y ;
     bool firstInit;
-    bool IsInside,unAccessible,AllIn,AnyIn;
+    bool IsInside,unAccessible,AllIn,AnyIn,AllInCorner,AllUnAccessible;
     bool DontEnterCircle,oppIsValid,OppIsKhoraak;
-    int state,state2;
+    bool Avoided;
+    int state,state2,statemargin;
     int index;
     int temp,temp2;
     int count;

@@ -172,7 +172,8 @@ SOURCES +=	main.cpp \
     ai/play/playmission2.cpp \
     ai/play/playmission3.cpp \
     ai/tactic/tacticsharifdefence.cpp \
-    ai/play/playstall.cpp
+    ai/play/playstall.cpp \
+    ssl/shapefiltering.cpp
 
 HEADERS  += \
     etc/settings.h \
@@ -279,7 +280,8 @@ HEADERS  += \
     ai/play/playmission2.h \
     ai/play/playmission3.h \
     ai/tactic/tacticsharifdefence.h \
-    ai/play/playstall.h
+    ai/play/playstall.h \
+    ssl/shapefiltering.h
 
 FORMS    +=	ui/mainwindow.ui
 

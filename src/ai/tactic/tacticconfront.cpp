@@ -8,15 +8,18 @@ TacticConfront::TacticConfront(WorldModel *worldmodel, QObject *parent) :
     origin2=Vector2D(-1500,0);
     obs=0;
     rcpast=Vector2D(0,0);
-    DoNotEnterOpposedField=true;//false;
+    DoNotEnterOpposedField=false;//true;//
     CanKickOpp = true;
     OppIsInOurField = false;
+    OppIsValid = true;
 }
 
 RobotCommand TacticConfront::getCommand()
 {
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
+    OppIsValid=wm->ourRobot[8].isValid;
+    Opp=wm->ourRobot[8].pos.loc;
     rc.fin_pos.loc=origin;
     rc.fin_pos.dir=(Vector2D(0,0)-origin).dir().radian();
     rc.maxSpeed = 1.4;
@@ -80,7 +83,7 @@ RobotCommand TacticConfront::getCommand()
 
         if(temp!=0)
         {
-            qDebug() << "---------TRANSFER NEGATIVE OBJECTS OVER THE LINE ---------";
+//            qDebug() << "---------TRANSFER NEGATIVE OBJECTS OVER THE LINE ---------";
             switch(state)
             {
             case 0:{ //Go Behind the Object
@@ -101,7 +104,7 @@ RobotCommand TacticConfront::getCommand()
             case 1:{//Ready to Push
 
                 rc.useNav = false;
-                rc.maxSpeed=1;
+                rc.maxSpeed=1.2;
                 int side = -1;//agentsNegative.at(index).goalRegion;
                 rc.fin_pos.loc.x=point2.x +(side)*(100+ROBOT_RADIUS)*(diff2.x)/(diff2.length());
                 rc.fin_pos.loc.y=point2.y +(side)*(100+ROBOT_RADIUS)*(diff2.y)/(diff2.length());
@@ -122,7 +125,7 @@ RobotCommand TacticConfront::getCommand()
             case 2:{//Push
                 //Vector2D diff2 = region2.center() - wm->ourRobot[id].pos.loc ;
                 rc.useNav = false;
-                rc.maxSpeed=1.3;
+                rc.maxSpeed=1.1;
                 //if(diff2.length() > 1500) diff2.setLength(1500);
                 diff2.setLength(300);
 
@@ -174,7 +177,7 @@ RobotCommand TacticConfront::getCommand()
     //--------------------------TRANSFER POSITIVE OBJECTS OVER THE LINE ----------------
     if(temp==0)
     {
-        qDebug() << "---------TRANSFER POSITIVE  ---------";
+//        qDebug() << "---------TRANSFER POSITIVE  ---------";
         for(int i=0;i<agentsPositive.size();i++)
         {
             //if(obstacle)wm->kn->)
@@ -214,7 +217,7 @@ RobotCommand TacticConfront::getCommand()
 
             if(temp2!=0)
             {
-                if(!IsOverTheLine)
+                if(!IsOverTheLine) // transfer that to the nearest point , perpendicular to the line
                 {
                     switch(state)
                     {
@@ -222,7 +225,7 @@ RobotCommand TacticConfront::getCommand()
 
                         Vector2D space2=diff2;
                         space2.setLength(300);
-                        rc.maxSpeed=1;
+                        rc.maxSpeed=1.2;
                         rc.useNav = true;
                         rc.fin_pos.loc=point2  - space2;
                         rc.fin_pos.dir=diff2.dir().radian();
@@ -234,7 +237,7 @@ RobotCommand TacticConfront::getCommand()
                     case 1:{//Ready to Push
 
                         rc.useNav = false;
-                        rc.maxSpeed=1;
+                        rc.maxSpeed=1.1;
                         int side = -1;//agentsPositive.at(index).goalRegion;
                         rc.fin_pos.loc.x=point2.x +(side)*(100 + ROBOT_RADIUS)*(diff2.x)/(diff2.length());
                         rc.fin_pos.loc.y=point2.y +(side)*(100 + ROBOT_RADIUS)*(diff2.y)/(diff2.length());
@@ -248,6 +251,7 @@ RobotCommand TacticConfront::getCommand()
                     case 2:{//Push
                         //Vector2D diff2 = region2.center() - wm->ourRobot[id].pos.loc ;
                         rc.useNav = false;
+                        rc.maxSpeed=1;
                         //if(diff2.length() > 1500) diff2.setLength(1500);
                         if(((wm->ourRobot[id].pos.loc-point2).length())>500) state=0;
                         if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc/*point2*/).length())<50) state=0;
@@ -353,8 +357,8 @@ RobotCommand TacticConfront::getCommand()
         //----------------------------------------------------------------------------
 
     }
-    qDebug()<< /*"fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ */"STATE = " << state ;
-
+//    qDebug()<< /*"fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ */"STATE = " << state ;
+//    qDebug() << "USE NAVIGATION IS : " << rc.useNav;
     if(DoNotEnterOpposedField)
     {
         // DO NOT ENTER OPPOSED Field
@@ -371,7 +375,20 @@ RobotCommand TacticConfront::getCommand()
         }
     }
 
-    OppIsInOurField = wm->oppRobot[7].isValid;
+
+    if(OppIsValid)
+    {
+        Segment2D Opp2O(Opp , origin );
+        for(int j=0;j<segList.size(); j++)
+        {
+            if(segList.at(j).existIntersection(Opp2O))
+            {
+                OppIsInOurField = false;
+                break;
+            }
+        }
+    }
+
     if(OppIsInOurField)
     {
         rc.fin_pos.loc = wm->oppRobot[7].pos.loc;
@@ -381,8 +398,8 @@ RobotCommand TacticConfront::getCommand()
     rc.fin_pos.loc.x=rcpast.x + 0.6*(rc.fin_pos.loc.x-rcpast.x);
     rc.fin_pos.loc.y=rcpast.y + 0.6*(rc.fin_pos.loc.y-rcpast.y);
     rcpast=rc.fin_pos.loc;
-    qDebug() << " DIST To Final Pos = " << (wm->ourRobot[id].pos.loc - rc.fin_pos.loc).length();
-    //rc.maxSpeed = 1.2;
+//    qDebug() << " DIST To Final Pos = " << (wm->ourRobot[id].pos.loc - rc.fin_pos.loc).length();
+    rc.maxSpeed /= 1.5;
     rc.isBallObs = false;
     rc.isKickObs = true;
     return rc;

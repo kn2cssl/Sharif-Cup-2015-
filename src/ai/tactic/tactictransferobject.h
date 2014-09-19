@@ -17,6 +17,7 @@ public:
     void addData();
     void mergeData();
     void sortData();
+    Vector2D KeepInField(RobotCommand rc);
 
 private:
     QList<Vector2D> agentsR0;
@@ -27,6 +28,7 @@ private:
     Rect2D region[2];
 
     Vector2D rcpast;
+    double MAX_X , MAX_Y , MIN_X , MIN_Y , mean_x , mean_y ;
     //Rect2D region2;
     bool firstInit;
     int state;

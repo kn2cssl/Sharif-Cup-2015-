@@ -27,7 +27,7 @@ private:
     bool firstInit;
     bool IsOverTheLine;
     bool DoNotEnterOpposedField;
-    bool CanKickOpp,OppIsInOurField;
+    bool CanKickOpp,OppIsInOurField,OppIsValid;
     int state;
     int index;
     int obs;
@@ -40,6 +40,6 @@ private:
     Segment2D *r2o; // Robot to Object
     Segment2D *o2o; // Origin to Object
     //Segment2D *seg[2]; // 2 segment line
-    Vector2D origin,origin2,rcpast;
+    Vector2D origin,origin2,rcpast,Opp;
 };
 #endif // TACTICCONFRONT_H

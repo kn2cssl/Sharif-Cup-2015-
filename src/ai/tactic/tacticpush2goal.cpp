@@ -8,23 +8,31 @@ TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
     circularBorderOut   .assign(Vector2D(1500,0),(1300));
     circularBorderDANGER.assign(Vector2D(1500,0),circularBorder.radius()+ROBOT_RADIUS);//+200);
     circularBorder2     .assign(Vector2D(1500,0),circularBorder.radius()+ROBOT_RADIUS+100);
-    hole1.assign(Vector2D(1500,1700/4),250);
-    hole2.assign(Vector2D(1500,-1700/4),250);
-    hole1_Offset.assign(Vector2D(1500,1700/4),300);
-    hole2_Offset.assign(Vector2D(1500,-1700/4),300);
+    hole1.assign(Vector2D(1500,1700/4),250/2);//250
+    hole2.assign(Vector2D(1500,-1700/4),250/2);
+    hole1_Offset.assign(Vector2D(1500,1700/4),300/2);//300
+    hole2_Offset.assign(Vector2D(1500,-1700/4),300/2);
     DontEnterCircle=true;
-    MAX_X = 2500; MIN_X=20;
-    MAX_Y = 1500; MIN_Y=-1500;//750;
+    MAX_X = 2600; MIN_X=200;
+    MAX_Y = 1300; MIN_Y=-1400;//750;
+    mean_x=(MAX_X+MIN_X) / 2;
+    mean_y=(MAX_Y+MIN_Y) / 2;
+
+    statemargin=0;
 }
 
 RobotCommand TacticPush2Goal::getCommand()
 {
-    oppIsValid=wm->ourRobot[8].isValid;// opposite robot
-    if(!oppIsValid) opp=Vector2D(1000000,1000000);
-    opp=wm->ourRobot[8].pos.loc;
+    oppIsValid = wm->ourRobot[8].isValid;// opposite robot
+    if(!oppIsValid) opp = Vector2D(1000000,1000000);
+    opp = wm->ourRobot[8].pos.loc;
+    OppIsKhoraak=!circularBorder2.contains(opp);//out of his field
     bool reach=false;
+    Avoided=false;
     AllIn=true;
     AnyIn=false;
+    AllInCorner=true;
+    AllUnAccessible=true;
 
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
@@ -61,17 +69,24 @@ RobotCommand TacticPush2Goal::getCommand()
         {
         case 0:{ //Go Behind the Object
 
-            vec2goal.setLength(300);
+            vec2goal.setLength(250);
             // qDebug()<<"VEC 2 GOAL LENGTH = " << vec2goal.length();
             rc.maxSpeed=1.3;
-            rc.useNav = true;
-            rc.isBallObs = true;
-            rc.isKickObs = true;
-            rc.fin_pos.loc=point2  - vec2goal;
+            rc.useNav = false;//true;
+            rc.isBallObs = false;//true;
+            rc.isKickObs = false;//true;
+            rc.fin_pos.loc=wm->kn->PredictDestination(wm->ourRobot[id].pos.loc,point2  - vec2goal,
+                                                      rc.maxSpeed,balls.at(index)->vel.loc);//point2  - vec2goal;
+            //            wm->kn->PredictDestination()
+            int rad = 150+ROBOT_RADIUS;
+            Circle2D c(point2,rad);
+            //            qDebug()<< "BEFOR ANY CHANGE " << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y;
+            rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+            //            if(Avoided) rc.maxSpeed=rc.maxSpeed;
             rc.fin_pos.dir=vec2goal.dir().radian();
             KeepInField(rc);
-            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,70);
-            if(reach) state = 1;
+            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
+            if(reach && !Avoided) state = 1;
 
         }
             break;
@@ -80,14 +95,16 @@ RobotCommand TacticPush2Goal::getCommand()
             rc.useNav = false;
             rc.isBallObs = false;
             rc.isKickObs = false;
-            rc.maxSpeed=1.5;
-            vec2goal.setLength(200);
-            rc.fin_pos.loc=point2  + vec2goal;
+            rc.maxSpeed=1.1;
+            vec2goal.setLength(100);
+            rc.fin_pos.loc=wm->kn->PredictDestination(wm->ourRobot[id].pos.loc,point2  + vec2goal,
+                                                      rc.maxSpeed,balls.at(index)->vel.loc);
             rc.fin_pos.dir=vec2goal.dir().radian();
 
             KeepInField(rc);
             if(((wm->ourRobot[id].pos.loc-point2).length())>800) state=0;
-            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state=0;
+            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<250) state=0;
+
 
             if(hole1.contains(rc.fin_pos.loc) || hole2.contains(rc.fin_pos.loc))
             {
@@ -102,371 +119,428 @@ RobotCommand TacticPush2Goal::getCommand()
         }
             break;
         }
-
-        if(IsInmargins(point2,100))
-            rc.fin_pos.loc=point2;
-
-        //        case 0:{ //Go Behind the Object
-
-        //            diff2.setLength(200);
-        //            rc.maxSpeed=0.8;
-        //            rc.useNav = true;
-        //            rc.isBallObs = true;
-        //            rc.isKickObs = true;
-        //            rc.fin_pos.loc=point2  - diff2;
-        //            rc.fin_pos.dir=diff2.dir().radian();//+M_PI;
-        //            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
-        //            if(reach) state = 1;
-
-        //        }
-        //            break;
-        //        case 1:{//Push
-        //            rc.useNav = false;
-        //            rc.isBallObs = false;
-        //            rc.isKickObs = false;
-        //            rc.maxSpeed=1;
-        //            diff2.setLength(200);
-        //            rc.fin_pos.loc=point2 + diff2;
-        //            rc.fin_pos.dir=diff2.dir().radian();//+M_PI;
-        //            if(((wm->ourRobot[id].pos.loc-point2).length())>600) {
-        //                state=0;
-        //                //qDebug() << " hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh ";
-        //            }
-        ////            if(((wm->ourRobot[id].pos.loc-point2).length())<ROBOT_RADIUS+BALL_RADIUS) state=0;
-        //            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state=0;
-        //        }
-        //            break;
-
-        //        }
-        //    }
-        //    else if(IsInside && !unAccessible)
-        //    {
-        //        state=0;
-        //       // qDebug() << " SECOND IFFFFFFFFF" ;
-        //        Vector2D point2 = balls.at(index)->pos.loc;
-        //        Vector2D dist1 = balls.at(index)->pos.loc- hole1.center() ;
-        //        Vector2D dist2 = balls.at(index)->pos.loc- hole2.center() ;
-        //        if(dist2.length2()>dist1.length2())
-        //        {
-        //            vec2goal = (hole1.center() - point2);
-        //        }
-        //        else
-        //        {
-        //            vec2goal = (hole2.center() - point2);
-        //        }
-
-
-        //        switch(state2)
-        //        {
-        //        case 0:{ //Go Behind the Object
-
-        //            vec2goal.setLength(400);
-        //           // qDebug()<<"VEC 2 GOAL LENGTH = " << vec2goal.length();
-        //            rc.maxSpeed=1;
-        //            rc.useNav = true;
-        //            rc.isBallObs = true;
-        //            rc.isKickObs = true;
-        //            rc.fin_pos.loc=point2  - vec2goal;
-        //            rc.fin_pos.dir=vec2goal.dir().radian();
-        //            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
-        //            if(reach) state2 = 1;
-
-        //        }
-        //            break;
-        //        case 1:{//Push
-
-        //            rc.useNav = false;
-        //            rc.isBallObs = false;
-        //            rc.isKickObs = false;
-        //            rc.maxSpeed=1.1;
-        //            vec2goal.setLength(300);
-        //            rc.fin_pos.loc=point2  + vec2goal;
-        //            rc.fin_pos.dir=vec2goal.dir().radian();
-        //            if(((wm->ourRobot[id].pos.loc-point2).length())>700) state2=0;
-        //            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state2=0;
-        ////            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,40);
-        ////            if(reach)
-        ////                state2 = 0;
-        //        }
-        //            break;
-        //        }
-
-        //    }
-        //        else if(IsInside && unAccessible )
-        //        {
-        //            //qDebug()<<"GO ON CIRCLE !!!! ";
-        //            //rc.fin_pos.loc=GoOncircle(circularBorder.center(),1100);//circularBorderOut.radius());//,wm->ourRobot[id].pos.loc);
-        //            Vector2D diff=wm->ourRobot[id].pos.loc-circularBorder.center();
-        //            rc.fin_pos.dir=diff.dir().radian()+M_PI;
-        //        }
-    }
-
-
-    //    if(DontEnterCircle && circularBorderDANGER.contains(wm->ourRobot[id].pos.loc) && circularBorder2.contains(point2))//circularBorderDANGER.contains(rc.fin_pos.loc))
-    //    {
-    //        rc.fin_pos.loc=circularBorderDANGER.nearestpoint(point2);//wm->ourRobot[id].pos.loc;//AvoidtoEnterCircle(circularBorderDANGER,point2);
-    //        rc.maxSpeed=1.1;
-    //    }
-
-    //     qDebug()<< "BEFOR ANY CHANGE " << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
-    //    qDebug()<< "          " << "ROBOT POS.x  " << wm->ourRobot[id].pos.loc.x << "  Y  "<< wm->ourRobot[id].pos.loc.y;
-    //    qDebug() << "Distance To Fin_Pos =  " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
-
-    //    rc.fin_pos.loc=KeepInField(rc);
-
-    if(((wm->ourRobot[id].pos.loc-opp).length() < 800) && oppIsValid )
-    {
-        rc.fin_pos.loc=AvoidtoEnterCircle(circularBorderDANGER,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);//rc.fin_pos.loc);
-    }
-    rc.fin_pos.loc=AvoidtoEnterCircle(hole1_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
-    rc.fin_pos.loc=AvoidtoEnterCircle(hole2_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
-    //    bool rich = wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,10,5);
-    //    if(rich) rc.fin_pos.loc=wm->ourRobot[id].pos.loc;
-
-    //     rc.fin_pos.loc=Vector2D(60000,60000);
-    //    rc.fin_pos.loc=KeepInField(rc);
-
-    //    rc.fin_pos.loc=Vector2D(MAX_X,MAX_Y);
-    // qDebug() << " DIRECTION ERROR =     " << (rc.fin_pos.dir-wm->ourRobot[id].pos.dir)*(180/3.14);
-    //rc.useNav = true;
-    //    rc.maxSpeed=1.8*rc.maxSpeed;
-    //    rc.isBallObs = false;
-    //    rc.isKickObs = false;
-
-    qDebug()<< "INDEX = " << index << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
-    //qDebug()<< "          " << "ROBOT POS.x  " << wm->ourRobot[id].pos.loc.x << "  Y  "<< wm->ourRobot[id].pos.loc.y;
-    //qDebug() << "Distance To Fin_Pos =  " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
-
-    //    qDebug() << " IS INSIDE = " << IsInside << "    UN ACCESSIBLE :" << unAccessible;
-
-    rc.maxSpeed=1*rc.maxSpeed;
-    return rc;
-}
-
-
-
-// ==================================================================================
-void TacticPush2Goal::addData()
-{
-
-    balls.clear();
-    balls=wm->balls;//wm->ourRobot[0].pos.loc);
-    //balls.insert(1,wm->ourRobot[1].pos.loc);
-    //balls.insert(2,wm->ourRobot[2].pos.loc);
-
-    //    agentsPositive.clear();
-    //    agentsPositive.insert(0,wm->ourRobot[4].pos.loc);//wm->ourRobot[0].pos.loc);
-    //    agentsPositive.insert(1,wm->ourRobot[5].pos.loc);
-
-    //    agentsPositive.insert(2,wm->oppRobot[0].pos.loc);
-}
-
-// ==================================================================================
-//Vector2D TacticPush2Goal::findnearest(Vector2D input)
-//{
-//    //int tmp = 0 ;
-//    double dist;
-//    Vector2D point=Vector2D(1000000,1000000);//,point2;
-//    for(int k=0;k<segList.size();k++)
-//    {
-//        dist=(input-point).length2();
-//        if((input-segList.at(k).nearestPoint(input)).length2()<dist) point=segList.at(k).nearestPoint(input);
-
-//    }
-//    return point;
-//}
-
-
-// ==================================================================================
-void TacticPush2Goal::sortData()
-{
-    for(int i=0;i<balls.size();i++)
-    {
-        //for(int j=0;j<segList.size();j++)
-        //{
-        for(int k=i+1;k<balls.size();k++)
+        int mrgn=200;
+        Vector2D dlta;
+        if(IsInmargins(point2,mrgn))
         {
-            if( (balls.at(i)->pos.loc-circularBorder.center()).length2()
-                    > (balls.at(k)->pos.loc-circularBorder.center()).length2() ) balls.swap(i,k);
+            int side = ((point2.x-mean_x)/abs(point2.x-mean_x))*((point2.y-mean_y)/abs(point2.y-mean_y));
+            if(point2.x > MAX_X-mrgn || point2.x < MIN_X+mrgn) dlta=Vector2D(0,side*(ROBOT_RADIUS+70));
+            else if(point2.y > MAX_Y-mrgn || point2.y < MIN_Y+mrgn) dlta=Vector2D(side*(ROBOT_RADIUS+70),0);
+            switch(statemargin)
+            {
+            case 0:{
+
+                rc.fin_pos.loc=point2+dlta;
+
+                int rad = 50+ROBOT_RADIUS;
+                Circle2D c(point2,rad);
+                rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+
+                rc.fin_pos.dir=dlta.dir().radian()-side*M_PI/2;
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,20);
+                if(reach && !Avoided) statemargin = 1;
+            }
+                break;
+
+            case 1:{
+                rc.fin_pos.dir+=M_PI/2;
+                if(((wm->ourRobot[id].pos.loc-point2).length())>800) statemargin=0;
+//                if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<250) state=0;
+            }
+                break;
+            }
         }
+
+                //        case 0:{ //Go Behind the Object
+
+                //            diff2.setLength(200);
+                //            rc.maxSpeed=0.8;
+                //            rc.useNav = true;
+                //            rc.isBallObs = true;
+                //            rc.isKickObs = true;
+                //            rc.fin_pos.loc=point2  - diff2;
+                //            rc.fin_pos.dir=diff2.dir().radian();//+M_PI;
+                //            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
+                //            if(reach) state = 1;
+
+                //        }
+                //            break;
+                //        case 1:{//Push
+                //            rc.useNav = false;
+                //            rc.isBallObs = false;
+                //            rc.isKickObs = false;
+                //            rc.maxSpeed=1;
+                //            diff2.setLength(200);
+                //            rc.fin_pos.loc=point2 + diff2;
+                //            rc.fin_pos.dir=diff2.dir().radian();//+M_PI;
+                //            if(((wm->ourRobot[id].pos.loc-point2).length())>600) {
+                //                state=0;
+                //                //qDebug() << " hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh ";
+                //            }
+                ////            if(((wm->ourRobot[id].pos.loc-point2).length())<ROBOT_RADIUS+BALL_RADIUS) state=0;
+                //            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state=0;
+                //        }
+                //            break;
+
+                //        }
+                //    }
+                //    else if(IsInside && !unAccessible)
+                //    {
+                //        state=0;
+                //       // qDebug() << " SECOND IFFFFFFFFF" ;
+                //        Vector2D point2 = balls.at(index)->pos.loc;
+                //        Vector2D dist1 = balls.at(index)->pos.loc- hole1.center() ;
+                //        Vector2D dist2 = balls.at(index)->pos.loc- hole2.center() ;
+                //        if(dist2.length2()>dist1.length2())
+                //        {
+                //            vec2goal = (hole1.center() - point2);
+                //        }
+                //        else
+                //        {
+                //            vec2goal = (hole2.center() - point2);
+                //        }
+
+
+                //        switch(state2)
+                //        {
+                //        case 0:{ //Go Behind the Object
+
+                //            vec2goal.setLength(400);
+                //           // qDebug()<<"VEC 2 GOAL LENGTH = " << vec2goal.length();
+                //            rc.maxSpeed=1;
+                //            rc.useNav = true;
+                //            rc.isBallObs = true;
+                //            rc.isKickObs = true;
+                //            rc.fin_pos.loc=point2  - vec2goal;
+                //            rc.fin_pos.dir=vec2goal.dir().radian();
+                //            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
+                //            if(reach) state2 = 1;
+
+                //        }
+                //            break;
+                //        case 1:{//Push
+
+                //            rc.useNav = false;
+                //            rc.isBallObs = false;
+                //            rc.isKickObs = false;
+                //            rc.maxSpeed=1.1;
+                //            vec2goal.setLength(300);
+                //            rc.fin_pos.loc=point2  + vec2goal;
+                //            rc.fin_pos.dir=vec2goal.dir().radian();
+                //            if(((wm->ourRobot[id].pos.loc-point2).length())>700) state2=0;
+                //            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state2=0;
+                ////            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,40);
+                ////            if(reach)
+                ////                state2 = 0;
+                //        }
+                //            break;
+                //        }
+
+                //    }
+                //        else if(IsInside && unAccessible )
+                //        {
+                //            //qDebug()<<"GO ON CIRCLE !!!! ";
+                //            //rc.fin_pos.loc=GoOncircle(circularBorder.center(),1100);//circularBorderOut.radius());//,wm->ourRobot[id].pos.loc);
+                //            Vector2D diff=wm->ourRobot[id].pos.loc-circularBorder.center();
+                //            rc.fin_pos.dir=diff.dir().radian()+M_PI;
+                //        }
+            }
+
+
+            //    if(DontEnterCircle && circularBorderDANGER.contains(wm->ourRobot[id].pos.loc) && circularBorder2.contains(point2))//circularBorderDANGER.contains(rc.fin_pos.loc))
+            //    {
+            //        rc.fin_pos.loc=circularBorderDANGER.nearestpoint(point2);//wm->ourRobot[id].pos.loc;//AvoidtoEnterCircle(circularBorderDANGER,point2);
+            //        rc.maxSpeed=1.1;
+            //    }
+
+            //         qDebug()<< "BEFOR ANY CHANGE " << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
+            //    qDebug()<< "          " << "ROBOT POS.x  " << wm->ourRobot[id].pos.loc.x << "  Y  "<< wm->ourRobot[id].pos.loc.y;
+            //    qDebug() << "Distance To Fin_Pos =  " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
+
+            rc.fin_pos.loc=KeepInField(rc);
+
+            if(/*((wm->ourRobot[id].pos.loc-opp).length() < 700)*/!OppIsKhoraak && oppIsValid )
+            {
+                rc.fin_pos.loc=AvoidtoEnterCircle(circularBorderDANGER,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);//rc.fin_pos.loc);
+            }
+            rc.fin_pos.loc=AvoidtoEnterCircle(hole1_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+            rc.fin_pos.loc=AvoidtoEnterCircle(hole2_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+            if(OppIsKhoraak) rc.fin_pos.loc=opp;
+
+            qDebug() << "State Margin = " << statemargin;
+            //    if(!OppIsKhoraak)
+            //    {
+            //        Circle2D c(opp,2*ROBOT_RADIUS+350);
+            //        rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+            //    }
+
+
+            //    bool rich = wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,10,5);
+            //    if(rich) rc.fin_pos.loc=wm->ourRobot[id].pos.loc;
+
+            //     rc.fin_pos.loc=Vector2D(60000,60000);
+            //    rc.fin_pos.loc=KeepInField(rc);
+
+            //    rc.fin_pos.loc=Vector2D(MAX_X,MAX_Y);
+            // qDebug() << " DIRECTION ERROR =     " << (rc.fin_pos.dir-wm->ourRobot[id].pos.dir)*(180/3.14);
+            //rc.useNav = true;
+            //    rc.maxSpeed=1.8*rc.maxSpeed;
+            //    rc.isBallObs = false;
+            //    rc.isKickObs = false;
+
+            //    qDebug()<< "INDEX = " << index << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
+            //qDebug()<< "          " << "ROBOT POS.x  " << wm->ourRobot[id].pos.loc.x << "  Y  "<< wm->ourRobot[id].pos.loc.y;
+            //qDebug() << "Distance To Fin_Pos =  " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
+
+            //    qDebug() << " IS INSIDE = " << IsInside << "    UN ACCESSIBLE :" << unAccessible;
+
+            //    qDebug() << " BALL SIZE : " << wm->balls.size();
+            //    qDebug() << " ROBOT IS IN CORNER " << IsInCorner(wm->ourRobot[id].pos.loc,70) << "     Robot Is In Margin  : " << IsInmargins(wm->ourRobot[id].pos.loc,70) ;
+            rc.maxSpeed=1*rc.maxSpeed;
+            return rc;
+        }
+
+
+
+        // ==================================================================================
+        void TacticPush2Goal::addData()
+        {
+
+            balls.clear();
+            balls=wm->balls;//wm->ourRobot[0].pos.loc);
+            //balls.insert(1,wm->ourRobot[1].pos.loc);
+            //balls.insert(2,wm->ourRobot[2].pos.loc);
+
+            //    agentsPositive.clear();
+            //    agentsPositive.insert(0,wm->ourRobot[4].pos.loc);//wm->ourRobot[0].pos.loc);
+            //    agentsPositive.insert(1,wm->ourRobot[5].pos.loc);
+
+            //    agentsPositive.insert(2,wm->oppRobot[0].pos.loc);
+        }
+
+        // ==================================================================================
+        //Vector2D TacticPush2Goal::findnearest(Vector2D input)
+        //{
+        //    //int tmp = 0 ;
+        //    double dist;
+        //    Vector2D point=Vector2D(1000000,1000000);//,point2;
+        //    for(int k=0;k<segList.size();k++)
+        //    {
+        //        dist=(input-point).length2();
+        //        if((input-segList.at(k).nearestPoint(input)).length2()<dist) point=segList.at(k).nearestPoint(input);
+
+        //    }
+        //    return point;
         //}
 
-    }
 
-}
-// =================================================================================
-Vector2D TacticPush2Goal::GoOncircle(Vector2D center, double radius)//, Vector2D Object)
-{
-    //for (int k=0;k<1000;k++)
-
-    Vector2D diff = wm->ourRobot[id].pos.loc - center;
-    diff.setDir(diff.dir()+1.1);//50);//.radian() + AngleDeg::deg2rad(5));
-    diff.setLength(radius);
-    Vector2D point = center + diff;
-    return point;
-
-}
-// =================================================================================
-Vector2D TacticPush2Goal::AvoidtoEnterCircle(Circle2D Ci,Vector2D pnt , Vector2D finPOS)
-{
-    Segment2D S(pnt,finPOS);
-    if(Ci.HasIntersection(S))
-    {
-        qDebug() << " HAS INTERSECTION WITH CIRCLE !! DO NOT ENTER THIS CIRCLE PLEASE !!!";
-        Vector2D c2r = pnt - Ci.center() ;
-        Vector2D c2f = finPOS - Ci.center() ;
-        c2r.setLength(Ci.radius()+50);
-        AngleDeg angle=c2r.dir() - c2f.dir();
-        //double ang=c2r.dir().radian() - c2f.dir().radian();
-        if (angle.radian() > M_PI) angle -=  AngleDeg(M_PI) *= 2;
-        if (angle.radian() < -M_PI) angle += AngleDeg(M_PI) *= 2;
-
-        //if (ang > M_PI) ang -= 2 * M_PI;
-        //if (ang < -M_PI) ang += 2 * M_PI;
-
-        //qDebug() << "c2r DIRECTION = " << c2r.dir().degree() << "c2f DIRECTION = " << c2f.dir().degree() << "   ANGLE  = " << angle.degree() << "    ANG =" << ang*57.32;
-        angle=angle/=6;
-        angle=c2r.dir() - angle;
-        c2r.setDir(angle);// c2f.dir()));
-        Vector2D p = Ci.center() + c2r ;
-        return p;
-    }
-    else
-    {
-        return finPOS;
-    }
-}
-// ==================================================================================
-void TacticPush2Goal::FindBall()
-{
-    for(int i=0;i<balls.size();i++)
-    {
-
-        c2o = new Segment2D(circularBorderOut.center() , balls.at(i)->pos.loc );
-        temp=0;
-        IsInside     = circularBorder2.contains(balls.at(i)->pos.loc);
-        unAccessible = circularBorder .contains(balls.at(i)->pos.loc);
-        //        if(circularBorder2.contains(balls.at(i)->pos.loc))// toop revaal nist
-        //        {
-        //            if( (balls.at(i)->pos.loc-opp).length() <500)            IsInside= true;
-        //            else IsInside= false;
-        //        }
-        //        if(circularBorder   .contains(balls.at(i)->pos.loc))// toop daakhele mohavvateye emtiaaz manfi ast
-        //        {
-        //            if( (balls.at(i)->pos.loc-opp).length() <500)            unAccessible=true;
-        //            else unAccessible=false;
-        //        }
-
-        if(!IsInside) AllIn = false;// All Balls Are in " NO REVAAL " circle
-        //        else if(IsInside) AnyIn = true;
-
-        if(!IsInside)
+        // ==================================================================================
+        void TacticPush2Goal::sortData()
         {
-            if(!IsInCorner(balls.at(i)->pos.loc,70))
+            for(int i=0;i<balls.size();i++)
             {
-                index=i;
-                break;
+                //for(int j=0;j<segList.size();j++)
+                //{
+                for(int k=i+1;k<balls.size();k++)
+                {
+                    if( (balls.at(i)->pos.loc-circularBorder.center()).length2()
+                            > (balls.at(k)->pos.loc-circularBorder.center()).length2() ) balls.swap(i,k);
+                }
+                //}
+
             }
 
         }
-        //        if(IsInside) qDebug()<< " INSIDE " ;
-        //        if(!IsInside) qDebug()<< "  OUT SIDE " ;
-        //        if(unAccessible) qDebug() << "UN - ACCESSIBLE" ;
-    }
-    if(AllIn && balls.size()>0 )
-    {
-        if(oppIsValid)
+        // =================================================================================
+        Vector2D TacticPush2Goal::GoOncircle(Vector2D center, double radius)//, Vector2D Object)
         {
-            furtherByOpp();
-            if( (balls.at(index)->pos.loc-opp).length() > 500 )            unAccessible=false;
+            //for (int k=0;k<1000;k++)
+
+            Vector2D diff = wm->ourRobot[id].pos.loc - center;
+            diff.setDir(diff.dir()+1.1);//50);//.radian() + AngleDeg::deg2rad(5));
+            diff.setLength(radius);
+            Vector2D point = center + diff;
+            return point;
+
         }
-        else
+        // =================================================================================
+        Vector2D TacticPush2Goal::AvoidtoEnterCircle(Circle2D Ci,Vector2D pnt , Vector2D finPOS)
         {
-            index=balls.size()-1;
-            if( (balls.at(index)->pos.loc-opp).length() > 500 )            unAccessible=false;
-        }
-    }
-}
-// ==================================================================================
-void TacticPush2Goal::FindHole()
-{
-    Vector2D dist1 = balls.at(index)->pos.loc- hole1.center() ;
-    Vector2D dist2 = balls.at(index)->pos.loc- hole2.center() ;
-    if(dist2.length2()>dist1.length2())
-    {
-        vec2goal = (hole1.center() - point2);
-    }
-    else
-    {
-        vec2goal = (hole2.center() - point2);
-    }
-}
-// ==================================================================================
+            Avoided=false;
+            Segment2D S(pnt,finPOS);
+            if(Ci.HasIntersection(S) || Ci.contains(pnt) || Ci.contains(finPOS))
+            {
+                //        qDebug() << " HAS INTERSECTION WITH CIRCLE !! DO NOT ENTER THIS CIRCLE PLEASE !!!";
+                //        qDebug() << " HAS INTERSECTION WITH CIRCLE ( " << Ci.center().x << "," << Ci.center().y << " ) , Radius : " << Ci.radius() ;
+                Vector2D c2r = pnt - Ci.center() ;
+                Vector2D c2f = finPOS - Ci.center() ;
+                c2r.setLength(Ci.radius()+50);
+                AngleDeg angle=c2r.dir() - c2f.dir();
+                //double ang=c2r.dir().radian() - c2f.dir().radian();
+                if (angle.radian() > M_PI) angle -=  AngleDeg(M_PI) *= 2;
+                if (angle.radian() < -M_PI) angle += AngleDeg(M_PI) *= 2;
 
-void TacticPush2Goal::furtherByOpp()
-{
-    double dist1 = 0;
-    for(int j=0;j<balls.size();j++)
-    {
-        if(((balls.at(j)->pos.loc-opp).length2()) > dist1 )
+                //if (ang > M_PI) ang -= 2 * M_PI;
+                //if (ang < -M_PI) ang += 2 * M_PI;
+
+                //qDebug() << "c2r DIRECTION = " << c2r.dir().degree() << "c2f DIRECTION = " << c2f.dir().degree() << "   ANGLE  = " << angle.degree() << "    ANG =" << ang*57.32;
+                int div=int(Ci.radius()/50);
+                //        qDebug() << "div = " << div ;
+                angle=angle/=min(div,6);
+                angle=c2r.dir() - angle;
+                c2r.setDir(angle);// c2f.dir()));
+                Vector2D p = Ci.center() + c2r ;
+                Avoided=true;
+                qDebug() << " Avoided point is : (" << finPOS.x << "," <<finPOS.y << ")  & Corrected is : ("<<
+                            p.x << "," << p.y << ")" ;
+                return p;
+            }
+            else
+            {
+                return finPOS;
+            }
+        }
+        // ==================================================================================
+        void TacticPush2Goal::FindBall()
         {
-            dist1=(balls.at(j)->pos.loc-opp).length2();
-            index=j;
+            for(int i=0;i<balls.size();i++)
+            {
+
+                c2o = new Segment2D(circularBorderOut.center() , balls.at(i)->pos.loc );
+                temp=0;
+                IsInside     = circularBorder2.contains(balls.at(i)->pos.loc);
+                //        unAccessible = circularBorder .contains(balls.at(i)->pos.loc);
+
+                //        if(circularBorder2.contains(balls.at(i)->pos.loc))// toop revaal nist
+                //        {
+                //            if( (balls.at(i)->pos.loc-opp).length() <500)            IsInside= true;
+                //            else IsInside= false;
+                //        }
+                if(circularBorder   .contains(balls.at(i)->pos.loc))// toop daakhele mohavvateye emtiaaz manfi ast
+                {
+                    if( ((balls.at(i)->pos.loc-opp).length() <500) && IsInCorner(balls.at(i)->pos.loc,70))            unAccessible=true;
+                    else unAccessible=false;
+                }
+                if(!unAccessible) AllUnAccessible=false;
+
+                if(!IsInside && !IsInCorner(balls.at(i)->pos.loc,70)) AllIn = false;// All Balls Are in " NO REVAAL " circle
+                if(!IsInCorner(balls.at(i)->pos.loc,70)) AllInCorner=false;
+                //        else if(IsInside) AnyIn = true;
+
+                if(!IsInside)
+                {
+                    if(!IsInCorner(balls.at(i)->pos.loc,70))
+                    {
+                        index=i;
+                        break;
+                    }
+
+                }
+                //        if(IsInside) qDebug()<< " INSIDE " ;
+                //        if(!IsInside) qDebug()<< "  OUT SIDE " ;
+                //        if(unAccessible) qDebug() << "UN - ACCESSIBLE" ;
+            }
+            if(AllUnAccessible && AllInCorner)
+            {
+                if( balls.size() > 0 )    index=0;
+            }
+            if(AllIn && balls.size()>0 )
+            {
+                if(oppIsValid)
+                {
+                    furtherByOpp();
+                    if( (balls.at(index)->pos.loc-opp).length() > 500 )            unAccessible=false;
+                }
+                else
+                {
+                    index=balls.size()-1;
+                    if( (balls.at(index)->pos.loc-opp).length() > 500 )            unAccessible=false;
+                }
+            }
         }
-        //        qDebug() << " DIST  = " << dist1 ;
-    }
-}
+        // ==================================================================================
+        void TacticPush2Goal::FindHole()
+        {
+            Vector2D dist1 = balls.at(index)->pos.loc- hole1.center() ;
+            Vector2D dist2 = balls.at(index)->pos.loc- hole2.center() ;
+            if(dist2.length2()>dist1.length2())
+            {
+                vec2goal = (hole1.center() - point2);
+            }
+            else
+            {
+                vec2goal = (hole2.center() - point2);
+            }
+        }
+        // ==================================================================================
 
-// ==================================================================================
+        void TacticPush2Goal::furtherByOpp()
+        {
+            double dist1 = 0;
+            for(int j=0;j<balls.size();j++)
+            {
+                if(((balls.at(j)->pos.loc-opp).length2()) > dist1 )
+                {
+                    dist1=(balls.at(j)->pos.loc-opp).length2();
+                    index=j;
+                }
+                //        qDebug() << " DIST  = " << dist1 ;
+            }
+        }
 
-Vector2D TacticPush2Goal::KeepInField(RobotCommand rc)
-{
-    if(rc.fin_pos.loc.x > MAX_X)
-    {
-        rc.fin_pos.loc = Vector2D(MAX_X,rc.fin_pos.loc.y);
-        qDebug() << " X > MAX_X !! ";
-    }
-    else if(rc.fin_pos.loc.x < MIN_X)
-    {
-        rc.fin_pos.loc = Vector2D(MIN_X,rc.fin_pos.loc.y);
-        qDebug() << " X < MIN_X !! ";
-    }
+        // ==================================================================================
 
-    if(rc.fin_pos.loc.y > MAX_Y)
-    {
-        rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MAX_Y);
-        qDebug() << " Y > MAX_Y !! ";
-    }
-    else if(rc.fin_pos.loc.y < MIN_Y)
-    {
-        rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MIN_Y);
-        qDebug() << " Y < MIN_Y !! ";
-    }
+        Vector2D TacticPush2Goal::KeepInField(RobotCommand rc)
+        {
+            if(rc.fin_pos.loc.x > MAX_X)
+            {
+                rc.fin_pos.loc = Vector2D(MAX_X,rc.fin_pos.loc.y);
+                qDebug() << " X > MAX_X !! ";
+            }
+            else if(rc.fin_pos.loc.x < MIN_X)
+            {
+                rc.fin_pos.loc = Vector2D(MIN_X,rc.fin_pos.loc.y);
+                qDebug() << " X < MIN_X !! ";
+            }
 
-    return rc.fin_pos.loc;
+            if(rc.fin_pos.loc.y > MAX_Y)
+            {
+                rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MAX_Y);
+                qDebug() << " Y > MAX_Y !! ";
+            }
+            else if(rc.fin_pos.loc.y < MIN_Y)
+            {
+                rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MIN_Y);
+                qDebug() << " Y < MIN_Y !! ";
+            }
 
-}
+            return rc.fin_pos.loc;
 
-// ==================================================================================
+        }
 
-bool TacticPush2Goal::IsInCorner(Vector2D pnt,double margin)
-{
-    qDebug() << " IS IN CORNER ";
-    //    double margin=100;
-    if(((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin)) && ((pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin)))
-        return true;
-    else return false;
-}
+        // ==================================================================================
 
-// ==================================================================================
+        bool TacticPush2Goal::IsInCorner(Vector2D pnt,double margin)
+        {
+            //
+            //    double margin=100;
+            if(((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin)) && ((pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin)))
+            { return true;
+                qDebug() << " IS IN CORNER ";}
 
-bool TacticPush2Goal::IsInmargins(Vector2D pnt, double margin)
-{
-    qDebug() << " IS IN MARGIN ";
-    if((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin) || (pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin))
-        return true;
-    else return false;
-}
+            else return false;
+        }
 
-// ==================================================================================
-// ==================================================================================
+        // ==================================================================================
+
+        bool TacticPush2Goal::IsInmargins(Vector2D pnt, double margin)
+        {
+            //
+            if((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin) || (pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin))
+            { return true;
+                qDebug() << " IS IN MARGIN "; }
+            else return false;
+        }
+
+        // ==================================================================================
+        // ==================================================================================
