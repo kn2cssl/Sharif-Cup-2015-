@@ -4,7 +4,7 @@ TacticConfront::TacticConfront(WorldModel *worldmodel, QObject *parent) :
     Tactic("TacticConfront", worldmodel, parent)
 {
     count=0;
-    origin=Vector2D(2500,0);
+    origin=Vector2D(2200,0);
     origin2=Vector2D(-1500,0);
     obs=0;
     rcpast=Vector2D(0,0);
@@ -18,8 +18,8 @@ RobotCommand TacticConfront::getCommand()
 {
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
-    OppIsValid=wm->ourRobot[8].isValid;
-    if(OppIsValid) Opp=wm->ourRobot[8].pos.loc;
+    OppIsValid=wm->theirRobot.IsValid;//wm->ourRobot[8].isValid;
+    if(OppIsValid) Opp=wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
     OppIsInhisField = true;
     rc.fin_pos.loc=origin;
     rc.fin_pos.dir=(Vector2D(0,0)-origin).dir().radian();
@@ -450,6 +450,7 @@ void TacticConfront::addseg()
 {
 
     segList.clear(); // SO IMPORTANT !!!
+
     //tseg = new Segment2D(Vector2D(-500, 2000),Vector2D(0,0));
     //segList.insert(0,*tseg);
     //tseg = new Segment2D(Vector2D(-500,-2000),Vector2D(0,0));
@@ -556,12 +557,13 @@ void TacticConfront::sortData()
         //{
         for(int k=i+1;k<agentsPositive.size();k++)
         {
-            if( (agentsPositive.at(i)-wm->ourRobot[id].pos.loc/*findnearest(agentsPositive.at(i))*/).length2()
-                    > (agentsPositive.at(k)-wm->ourRobot[id].pos.loc/*findnearest(agentsPositive.at(k))*/).length2() ) agentsPositive.swap(i,k);
+            if(( (agentsPositive.at(i)-wm->ourRobot[id].pos.loc).length2() +(agentsPositive.at(i)-findnearest(agentsPositive.at(i))).length2())
+                    > ((agentsPositive.at(k)-wm->ourRobot[id].pos.loc).length2() +((agentsPositive.at(i)- findnearest(agentsPositive.at(k))).length2() )) ) agentsPositive.swap(i,k);
         }
         //}
 
     }
+
 
     for(int i=0;i<agentsNegative.size();i++)
     {
@@ -569,8 +571,13 @@ void TacticConfront::sortData()
         //{
         for(int k=i+1;k<agentsNegative.size();k++)
         {
-            if( (agentsNegative.at(i)-wm->ourRobot[id].pos.loc/*findnearest(agentsNegative.at(i))*/).length2()
-                    > (agentsNegative.at(k)-wm->ourRobot[id].pos.loc/*findnearest(agentsNegative.at(k))*/).length2() ) agentsNegative.swap(i,k);
+//            if( (agentsNegative.at(i)-wm->ourRobot[id].pos.loc/*findnearest(agentsNegative.at(i))*/).length2()
+//                    > (agentsNegative.at(k)-wm->ourRobot[id].pos.loc/*findnearest(agentsNegative.at(k))*/).length2() ) agentsNegative.swap(i,k);
+
+            if(( (agentsNegative.at(i)-wm->ourRobot[id].pos.loc).length2() +(agentsNegative.at(i)-findnearest(agentsNegative.at(i))).length2())
+                    > ((agentsNegative.at(k)-wm->ourRobot[id].pos.loc).length2() +((agentsNegative.at(i)- findnearest(agentsNegative.at(k))).length2() )) ) agentsNegative.swap(i,k);
+
+
         }
         //}
 

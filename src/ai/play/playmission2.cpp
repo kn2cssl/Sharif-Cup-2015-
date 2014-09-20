@@ -16,7 +16,7 @@ int PlayMission2::enterCondition()
 
 void PlayMission2::execute()
 {
-    tactics[7] = tConfront;
+    tactics[8] = tConfront;
     return ;
 
 }

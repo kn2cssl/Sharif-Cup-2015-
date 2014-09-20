@@ -18,9 +18,9 @@ int PlayMission3::enterCondition()
 void PlayMission3::execute()
 {
     if(wm->isAttacker)
-        tactics[7] = tAttacker;
+        tactics[8] = tAttacker;
     else
-        tactics[8] = tDefender;
+        tactics[7] = tDefender;
     return ;
 
 }

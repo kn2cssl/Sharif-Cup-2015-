@@ -39,8 +39,8 @@
         InHole=false;
         Avoided=false;
         bool reach;
-        oppIsInField=wm->ourRobot[7].isValid;
-        Opp=wm->ourRobot[7].pos.loc;
+        oppIsInField=wm->theirRobot.IsValid;//wm->ourRobot[7].isValid;
+        Opp=wm->theirRobot.position;//wm->ourRobot[7].pos.loc;
         oppIsKhoraak=circularBorder.contains(Opp);
 
         addData();

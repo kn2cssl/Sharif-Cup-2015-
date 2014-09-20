@@ -26,6 +26,7 @@ private:
     void addToRegion2(ShapeFiltering input);
     void addToNegative(ShapeFiltering input);
     void addToPositive(ShapeFiltering input);
+    void addToRobot(ShapeFiltering input);
 
     int findNearestShape(ShapeFiltering goal_shape, QList<ShapeFiltering> shape_list);
 

@@ -13,6 +13,7 @@ public:
     double roundedRadios;
     std::string color;
     std::string type;
+    bool IsValid;
 
 };
 

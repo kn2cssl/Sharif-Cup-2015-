@@ -40,7 +40,7 @@ public:
     int mission;
     int numberOfShapes;
     Agent *myRobot;
-    Robot *theirRobot;
+    Shape theirRobot;
         //-------First Mission----------
         Rect2D region1;
         Rect2D region2;

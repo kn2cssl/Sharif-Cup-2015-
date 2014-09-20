@@ -148,8 +148,9 @@
             //        }
 
         }
+//        DrawShapes_sharif();
 
-
+        DrawShapes_sharif(_sc->wm->theirRobot,painter);
 
 
 
@@ -245,6 +246,18 @@
             double Xtext=(list.at(k).position.x/WORLD_SCALE - 3*list.at(k).roundedRadios/4);
             double Ytext=(-list.at(k).position.y/WORLD_SCALE );//+ list.at(k).roundedRadios);
             painter.drawText(Xtext,Ytext,QString::fromStdString(list.at(k).type));
-            }
-            }
+        }
+    }
+
+    void RenderArea::DrawShapes_sharif(Shape rbt, QPainter &painter)
+    {
+        painter.setPen(QColor::fromRgb(150,100,0));
+        painter.setBrush(*brush_black_shape);
+        painter.drawEllipse(QPoint(rbt.position.x/WORLD_SCALE,-rbt.position.y/WORLD_SCALE),
+                    rbt.roundedRadios,rbt.roundedRadios);
+
+        double Xtext=(rbt.position.x/WORLD_SCALE - 3*rbt.roundedRadios/4);
+        double Ytext=(-rbt.position.y/WORLD_SCALE );//+ list.at(k).roundedRadios);
+        painter.drawText(Xtext,Ytext,QString::fromStdString(rbt.type));
+    }
 

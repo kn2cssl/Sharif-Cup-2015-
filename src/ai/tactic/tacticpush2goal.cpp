@@ -23,9 +23,9 @@ TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
 
 RobotCommand TacticPush2Goal::getCommand()
 {
-    oppIsValid = wm->ourRobot[8].isValid;// opposite robot
+    oppIsValid = wm->theirRobot.IsValid;//wm->ourRobot[8].isValid;// opposite robot
     if(!oppIsValid) opp = Vector2D(1000000,1000000);
-    opp = wm->ourRobot[8].pos.loc;
+    opp = wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
     OppIsKhoraak=!circularBorder2.contains(opp);//out of his field
     bool reach=false;
     Avoided=false;

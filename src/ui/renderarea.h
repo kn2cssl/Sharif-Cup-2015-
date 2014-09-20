@@ -41,6 +41,7 @@ public slots:
     void refresh();
     void paintEvent(QPaintEvent *);
     void DrawShapes_sharif(QList<Shape> list,QPainter &painter);
+    void DrawShapes_sharif(Shape rbt,QPainter &painter);
 
 };
 

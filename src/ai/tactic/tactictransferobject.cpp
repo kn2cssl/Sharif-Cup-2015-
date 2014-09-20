@@ -107,7 +107,7 @@
                     rc.maxSpeed=1;
                     //if(diff2.length() > 1500) diff2.setLength(1500);
                     // if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
-                    diff2.setLength(200);
+                    diff2.setLength(400);
                     if(((wm->ourRobot[id].pos.loc-point2).length())>500) state=0;
                     if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<50) state=0;
                     Vector2D o2r = ( point2 - wm->ourRobot[id].pos.loc );
@@ -213,8 +213,12 @@
         {
             for(int k=i+1;k<mergedList.size();k++)
             {
-                if( (mergedList.at(i).pos-region[mergedList.at(i).goalRegion].center()).length2()
-                        > (mergedList.at(k).pos-region[mergedList.at(k).goalRegion].center()).length2() ) mergedList.swap(i,k);
+                if( (mergedList.at(i).pos-wm->ourRobot[id].pos.loc).length2()+(mergedList.at(i).pos-region[mergedList.at(i).goalRegion].center()).length2()
+                        > (mergedList.at(k).pos-wm->ourRobot[id].pos.loc).length2()+(mergedList.at(k).pos-region[mergedList.at(k).goalRegion].center()).length2() ) mergedList.swap(i,k);
+//
+//                if( (mergedList.at(i).pos-wm->ourRobot[id].pos.loc).length2()
+//                        > (mergedList.at(k).pos-wm->ourRobot[id].pos.loc).length2() ) mergedList.swap(i,k);
+
             }
 
         }
