@@ -3,14 +3,19 @@
     TacticSharifDefence::TacticSharifDefence(WorldModel *worldmodel, QObject *parent) :
         Tactic("TacticSharifDefence", worldmodel, parent)
     {
-        circularBorder.assign(Vector2D(1500,0),1700/2);
-        circularBorderOut.assign(Vector2D(1500,0),2100/2);// a circle may use to push balls with some risks
-        circularMid.assign(Vector2D(1500,0),720); // a circle which is between holes and border circle
-        hole1.assign(Vector2D(1500,1700/4),250/2);
-        hole2.assign(Vector2D(1500,-1700/4),250/2);
+        Vector2D center;//(1667,110);
+        center=wm->circularBorder.center();
+
+        circularBorder.assign(center,1700/2);
+        circularBorderOut.assign(center,2100/2);// a circle may use to push balls with some risks
+        circularMid.assign(center,720); // a circle which is between holes and border circle
+
+        hole1.assign(wm->goal1.center(),250/2);
+        hole2.assign(wm->goal2.center(),250/2);
         //        addHolePoints();
-        hole1_Offset.assign(Vector2D(1500,1700/4),650/2);
-        hole2_Offset.assign(Vector2D(1500,-1700/4),650/2);
+        hole1_Offset.assign(wm->goal1.center(),650/2);
+        hole2_Offset.assign(wm->goal2.center(),650/2);
+
         Vector2D Cdist = (hole1.center() - circularBorder.center());
         double deltaAngle=1.1*asin(hole1.radius()/(Cdist.length())); // 1.1 is safety factor
         Uangle1=Cdist.dir().radian() + deltaAngle ;

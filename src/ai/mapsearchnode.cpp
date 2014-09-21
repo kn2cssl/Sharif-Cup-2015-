@@ -140,36 +140,36 @@ QList<Circle2D> MapSearchNode::getObsCircle()
 //        }
 //    }
 
-    if(!isBallObs && isKickObs && wm->ball.isValid)
-    {
-        Position rpos = wm->ourRobot[selfRobot].pos;
-        Vector2D bloc = wm->ball.pos.loc;
+//    if(!isBallObs && isKickObs && wm->ball.isValid)
+//    {
+//        Position rpos = wm->ourRobot[selfRobot].pos;
+//        Vector2D bloc = wm->ball.pos.loc;
 
-        double bang = (bloc - rpos.loc).dir().radian() - rpos.dir;
-        if (bang >  M_PI) bang -= 2 * M_PI;
-        if (bang < -M_PI) bang += 2 * M_PI;
+//        double bang = (bloc - rpos.loc).dir().radian() - rpos.dir;
+//        if (bang >  M_PI) bang -= 2 * M_PI;
+//        if (bang < -M_PI) bang += 2 * M_PI;
 
-        if(fabs(bang) > M_PI_4 * 3 / 4)
-        {
-            Circle2D c(wm->ball.pos.loc, b_rad);
-            result.append(c);
-        }
-    }
+//        if(fabs(bang) > M_PI_4 * 3 / 4)
+//        {
+//            Circle2D c(wm->ball.pos.loc, b_rad);
+//            result.append(c);
+//        }
+//    }
 
-    for(int i=0; i<PLAYERS_MAX_NUM; i++)
-    {
-        if(i == selfRobot) continue;
-        if(!wm->ourRobot[i].isValid) continue;
-        Circle2D c(wm->ourRobot[i].pos.loc, r_rad);
-        result.append(c);
-    }
+//    for(int i=0; i<PLAYERS_MAX_NUM; i++)
+//    {
+//        if(i == selfRobot) continue;
+//        if(!wm->ourRobot[i].isValid) continue;
+//        Circle2D c(wm->ourRobot[i].pos.loc, r_rad);
+//        result.append(c);
+//    }
 
-    for(int i=0; i<PLAYERS_MAX_NUM; i++)
-    {
-        if(!wm->oppRobot[i].isValid) continue;
-        Circle2D c(wm->oppRobot[i].pos.loc, r_rad);
-        result.append(c);
-    }
+//    for(int i=0; i<PLAYERS_MAX_NUM; i++)
+//    {
+//        if(!wm->oppRobot[i].isValid) continue;
+//        Circle2D c(wm->oppRobot[i].pos.loc, r_rad);
+//        result.append(c);
+//    }
 
     // MISION I    ------------------------------------------------
 //    qDebug() << "SHAPES 4 Region 1 " << wm->shapes4Region1.size();

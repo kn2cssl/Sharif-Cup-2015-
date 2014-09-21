@@ -4,16 +4,25 @@
 TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
     Tactic("TacticPush2Goal", worldmodel, parent)
 {
-    circularBorder      .assign(Vector2D(1500,0),(1700/2));//+ROBOT_RADIUS);
-    circularBorderOut   .assign(Vector2D(1500,0),(1300));
-    circularBorderDANGER.assign(Vector2D(1500,0),circularBorder.radius()+ROBOT_RADIUS);//+200);
-    circularBorder2     .assign(Vector2D(1500,0),circularBorder.radius()+ROBOT_RADIUS+100);
-    hole1.assign(Vector2D(1500,1700/4),250/2);//250
-    hole2.assign(Vector2D(1500,-1700/4),250/2);
-    hole1_Offset.assign(Vector2D(1500,1700/4),300/2);//300
-    hole2_Offset.assign(Vector2D(1500,-1700/4),300/2);
+    Vector2D center;//(1667,110);
+    center=wm->circularBorder.center();
+    circularBorder      .assign(center,(1700/2));//+ROBOT_RADIUS);
+    circularBorderOut   .assign(center,(1300));
+    circularBorderDANGER.assign(center,circularBorder.radius()+ROBOT_RADIUS);//+200);
+    circularBorder2     .assign(center,circularBorder.radius()+ROBOT_RADIUS+100);
+
+    hole1.assign(wm->goal1.center(),250/2);//250
+    hole2.assign(wm->goal2.center(),250/2);
+    hole1_Offset.assign(wm->goal1.center(),300/2);//300
+    hole2_Offset.assign(wm->goal2.center(),300/2);
+
+//    hole1.assign(Vector2D(1500+167,110+(1700/4)),250/2);//250
+//    hole2.assign(Vector2D(1500+167,110-(1700/4)),250/2);
+//    hole1_Offset.assign(Vector2D(1500+167,110+(1700/4)),300/2);//300
+//    hole2_Offset.assign(Vector2D(1500+167,110-(1700/4)),300/2);
+
     DontEnterCircle=true;
-    MAX_X = 2600; MIN_X=200;
+    MAX_X = 2700; MIN_X=200;
     MAX_Y = 1300; MIN_Y=-1400;//750;
     mean_x=(MAX_X+MIN_X) / 2;
     mean_y=(MAX_Y+MIN_Y) / 2;
@@ -23,9 +32,9 @@ TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
 
 RobotCommand TacticPush2Goal::getCommand()
 {
-    oppIsValid = wm->theirRobot.IsValid;//wm->ourRobot[8].isValid;// opposite robot
+    oppIsValid = wm->ourRobot[0].isValid;//wm->theirRobot.IsValid;// opposite robot
     if(!oppIsValid) opp = Vector2D(1000000,1000000);
-    opp = wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
+    opp = wm->ourRobot[0].pos.loc;//wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
     OppIsKhoraak=!circularBorder2.contains(opp);//out of his field
     bool reach=false;
     Avoided=false;
@@ -80,11 +89,11 @@ RobotCommand TacticPush2Goal::getCommand()
             //            wm->kn->PredictDestination()
             int rad = 150+ROBOT_RADIUS;
             Circle2D c(point2,rad);
-            //            qDebug()<< "BEFOR ANY CHANGE " << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y;
+
             rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
             //            if(Avoided) rc.maxSpeed=rc.maxSpeed;
             rc.fin_pos.dir=vec2goal.dir().radian();
-            KeepInField(rc);
+//            KeepInField(rc);
             reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
             if(reach && !Avoided) state = 1;
 
@@ -124,126 +133,54 @@ RobotCommand TacticPush2Goal::getCommand()
         if(IsInmargins(point2,mrgn))
         {
             int side = ((point2.x-mean_x)/abs(point2.x-mean_x))*((point2.y-mean_y)/abs(point2.y-mean_y));
-            if(point2.x > MAX_X-mrgn || point2.x < MIN_X+mrgn) dlta=Vector2D(0,side*(ROBOT_RADIUS+70));
-            else if(point2.y > MAX_Y-mrgn || point2.y < MIN_Y+mrgn) dlta=Vector2D(side*(ROBOT_RADIUS+70),0);
+            if(point2.x > MAX_X-mrgn || point2.x < MIN_X+mrgn) {
+                side *= ((point2.y-mean_y)/abs(point2.y-mean_y));
+                dlta=Vector2D(0,side*(ROBOT_RADIUS+20));}
+            else if(point2.y > MAX_Y-mrgn || point2.y < MIN_Y+mrgn) {
+                side *=((point2.x-mean_x)/abs(point2.x-mean_x));
+                dlta=Vector2D(side*(ROBOT_RADIUS+20),0);}
             switch(statemargin)
             {
             case 0:{
 
                 rc.fin_pos.loc=point2+dlta;
 
-                int rad = 50+ROBOT_RADIUS;
+                int rad = 70+ROBOT_RADIUS;
                 Circle2D c(point2,rad);
                 rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
+                qDebug()<< "In Margins Pos  : ball = ( " << point2.x << ","<< point2.y << ")";
+                qDebug()<< "In Margins Pos  : delta = ( " << dlta.x << ","<< dlta.y << ")";
+                qDebug()<< "In Margins Pos  : fin_pos = ( " << rc.fin_pos.loc.x << ","<<rc.fin_pos.loc.y << ")";
+                qDebug()<< "In Margins Pos  : Robot = ( " << wm->ourRobot[id].pos.loc.x << ","<<wm->ourRobot[id].pos.loc.y << ")";
                 rc.fin_pos.dir=dlta.dir().radian()-side*M_PI/2;
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,20);
-                if(reach && !Avoided) statemargin = 1;
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,20,7);
+//                            wm->ourRobot[id].pos.loc,rc.fin_pos.loc,200);
+                qDebug() << "dist To final Pos : " << (wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length();
+                qDebug() << " Avoided : " << Avoided << "     reach" << reach;
+                if(reach) statemargin = 1;
             }
                 break;
 
             case 1:{
-                rc.fin_pos.dir+=M_PI/2;
-                if(((wm->ourRobot[id].pos.loc-point2).length())>800) statemargin=0;
+                rc.fin_pos.dir = dlta.dir().radian() - side*0.9*M_PI ;
+                rc.fin_pos.loc=point2-dlta;
+                qDebug() << "Fin_POS . dir = " << AngleDeg::rad2deg(rc.fin_pos.dir) << " ROBOT . dir = " <<  AngleDeg::rad2deg(wm->ourRobot[id].pos.dir);
+                if(((wm->ourRobot[id].pos.loc-point2).length())>300) statemargin=0;
+                double delta_ang=wm->ourRobot[id].pos.dir-rc.fin_pos.dir;
+                if (delta_ang >  M_PI) delta_ang -= (M_PI * 2);
+                if (delta_ang < -M_PI) delta_ang += (M_PI * 2);
+                if(fabs(delta_ang) < AngleDeg::deg2rad(10)) statemargin=0;
+                rc.maxSpeed=1.7;
+//                bool chighz=wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,20,10);
+//                if(chighz) statemargin=0;
+//                if((wm->ourRobot[id].pos.loc.dir()-rc.fin_pos.dir)<AngleDeg::deg2rad(10)) statemargin=0;
 //                if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<250) state=0;
             }
                 break;
             }
         }
 
-                //        case 0:{ //Go Behind the Object
-
-                //            diff2.setLength(200);
-                //            rc.maxSpeed=0.8;
-                //            rc.useNav = true;
-                //            rc.isBallObs = true;
-                //            rc.isKickObs = true;
-                //            rc.fin_pos.loc=point2  - diff2;
-                //            rc.fin_pos.dir=diff2.dir().radian();//+M_PI;
-                //            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
-                //            if(reach) state = 1;
-
-                //        }
-                //            break;
-                //        case 1:{//Push
-                //            rc.useNav = false;
-                //            rc.isBallObs = false;
-                //            rc.isKickObs = false;
-                //            rc.maxSpeed=1;
-                //            diff2.setLength(200);
-                //            rc.fin_pos.loc=point2 + diff2;
-                //            rc.fin_pos.dir=diff2.dir().radian();//+M_PI;
-                //            if(((wm->ourRobot[id].pos.loc-point2).length())>600) {
-                //                state=0;
-                //                //qDebug() << " hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh ";
-                //            }
-                ////            if(((wm->ourRobot[id].pos.loc-point2).length())<ROBOT_RADIUS+BALL_RADIUS) state=0;
-                //            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state=0;
-                //        }
-                //            break;
-
-                //        }
-                //    }
-                //    else if(IsInside && !unAccessible)
-                //    {
-                //        state=0;
-                //       // qDebug() << " SECOND IFFFFFFFFF" ;
-                //        Vector2D point2 = balls.at(index)->pos.loc;
-                //        Vector2D dist1 = balls.at(index)->pos.loc- hole1.center() ;
-                //        Vector2D dist2 = balls.at(index)->pos.loc- hole2.center() ;
-                //        if(dist2.length2()>dist1.length2())
-                //        {
-                //            vec2goal = (hole1.center() - point2);
-                //        }
-                //        else
-                //        {
-                //            vec2goal = (hole2.center() - point2);
-                //        }
-
-
-                //        switch(state2)
-                //        {
-                //        case 0:{ //Go Behind the Object
-
-                //            vec2goal.setLength(400);
-                //           // qDebug()<<"VEC 2 GOAL LENGTH = " << vec2goal.length();
-                //            rc.maxSpeed=1;
-                //            rc.useNav = true;
-                //            rc.isBallObs = true;
-                //            rc.isKickObs = true;
-                //            rc.fin_pos.loc=point2  - vec2goal;
-                //            rc.fin_pos.dir=vec2goal.dir().radian();
-                //            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
-                //            if(reach) state2 = 1;
-
-                //        }
-                //            break;
-                //        case 1:{//Push
-
-                //            rc.useNav = false;
-                //            rc.isBallObs = false;
-                //            rc.isKickObs = false;
-                //            rc.maxSpeed=1.1;
-                //            vec2goal.setLength(300);
-                //            rc.fin_pos.loc=point2  + vec2goal;
-                //            rc.fin_pos.dir=vec2goal.dir().radian();
-                //            if(((wm->ourRobot[id].pos.loc-point2).length())>700) state2=0;
-                //            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state2=0;
-                ////            reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,40);
-                ////            if(reach)
-                ////                state2 = 0;
-                //        }
-                //            break;
-                //        }
-
-                //    }
-                //        else if(IsInside && unAccessible )
-                //        {
-                //            //qDebug()<<"GO ON CIRCLE !!!! ";
-                //            //rc.fin_pos.loc=GoOncircle(circularBorder.center(),1100);//circularBorderOut.radius());//,wm->ourRobot[id].pos.loc);
-                //            Vector2D diff=wm->ourRobot[id].pos.loc-circularBorder.center();
-                //            rc.fin_pos.dir=diff.dir().radian()+M_PI;
-                //        }
             }
 
 
@@ -253,7 +190,7 @@ RobotCommand TacticPush2Goal::getCommand()
             //        rc.maxSpeed=1.1;
             //    }
 
-            //         qDebug()<< "BEFOR ANY CHANGE " << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
+//                     qDebug()<< "BEFOR ANY CHANGE " << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
             //    qDebug()<< "          " << "ROBOT POS.x  " << wm->ourRobot[id].pos.loc.x << "  Y  "<< wm->ourRobot[id].pos.loc.y;
             //    qDebug() << "Distance To Fin_Pos =  " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
 
@@ -265,9 +202,10 @@ RobotCommand TacticPush2Goal::getCommand()
             }
             rc.fin_pos.loc=AvoidtoEnterCircle(hole1_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
             rc.fin_pos.loc=AvoidtoEnterCircle(hole2_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
-            if(OppIsKhoraak) rc.fin_pos.loc=opp;
+            if(oppIsValid && OppIsKhoraak) rc.fin_pos.loc=opp;
 
             qDebug() << "State Margin = " << statemargin;
+
             //    if(!OppIsKhoraak)
             //    {
             //        Circle2D c(opp,2*ROBOT_RADIUS+350);
@@ -288,7 +226,7 @@ RobotCommand TacticPush2Goal::getCommand()
             //    rc.isBallObs = false;
             //    rc.isKickObs = false;
 
-            //    qDebug()<< "INDEX = " << index << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
+                qDebug()<< "INDEX = " << index << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
             //qDebug()<< "          " << "ROBOT POS.x  " << wm->ourRobot[id].pos.loc.x << "  Y  "<< wm->ourRobot[id].pos.loc.y;
             //qDebug() << "Distance To Fin_Pos =  " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
 
@@ -296,7 +234,7 @@ RobotCommand TacticPush2Goal::getCommand()
 
             //    qDebug() << " BALL SIZE : " << wm->balls.size();
             //    qDebug() << " ROBOT IS IN CORNER " << IsInCorner(wm->ourRobot[id].pos.loc,70) << "     Robot Is In Margin  : " << IsInmargins(wm->ourRobot[id].pos.loc,70) ;
-            rc.maxSpeed=1*rc.maxSpeed;
+            rc.maxSpeed=1.21*rc.maxSpeed;
             return rc;
         }
 
@@ -371,7 +309,7 @@ RobotCommand TacticPush2Goal::getCommand()
             if(Ci.HasIntersection(S) || Ci.contains(pnt) || Ci.contains(finPOS))
             {
                 //        qDebug() << " HAS INTERSECTION WITH CIRCLE !! DO NOT ENTER THIS CIRCLE PLEASE !!!";
-                //        qDebug() << " HAS INTERSECTION WITH CIRCLE ( " << Ci.center().x << "," << Ci.center().y << " ) , Radius : " << Ci.radius() ;
+//                        qDebug() << " HAS INTERSECTION WITH CIRCLE ( " << Ci.center().x << "," << Ci.center().y << " ) , Radius : " << Ci.radius() ;
                 Vector2D c2r = pnt - Ci.center() ;
                 Vector2D c2f = finPOS - Ci.center() ;
                 c2r.setLength(Ci.radius()+50);
@@ -492,23 +430,23 @@ RobotCommand TacticPush2Goal::getCommand()
 
         Vector2D TacticPush2Goal::KeepInField(RobotCommand rc)
         {
-            if(rc.fin_pos.loc.x > MAX_X)
+            if(rc.fin_pos.loc.x > MAX_X+ROBOT_RADIUS)
             {
                 rc.fin_pos.loc = Vector2D(MAX_X,rc.fin_pos.loc.y);
                 qDebug() << " X > MAX_X !! ";
             }
-            else if(rc.fin_pos.loc.x < MIN_X)
+            else if(rc.fin_pos.loc.x < MIN_X-ROBOT_RADIUS)
             {
                 rc.fin_pos.loc = Vector2D(MIN_X,rc.fin_pos.loc.y);
                 qDebug() << " X < MIN_X !! ";
             }
 
-            if(rc.fin_pos.loc.y > MAX_Y)
+            if(rc.fin_pos.loc.y > MAX_Y+ROBOT_RADIUS)
             {
                 rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MAX_Y);
                 qDebug() << " Y > MAX_Y !! ";
             }
-            else if(rc.fin_pos.loc.y < MIN_Y)
+            else if(rc.fin_pos.loc.y < MIN_Y-ROBOT_RADIUS)
             {
                 rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MIN_Y);
                 qDebug() << " Y < MIN_Y !! ";
@@ -537,8 +475,10 @@ RobotCommand TacticPush2Goal::getCommand()
         {
             //
             if((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin) || (pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin))
-            { return true;
-                qDebug() << " IS IN MARGIN "; }
+            {
+                qDebug() << " IS IN MARGIN ";
+                return true;
+                 }
             else return false;
         }
 

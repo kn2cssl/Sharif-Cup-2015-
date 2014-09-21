@@ -20,9 +20,10 @@ RobotCommand TacticConfront::getCommand()
     if(!wm->ourRobot[id].isValid) return rc;
     OppIsValid=wm->theirRobot.IsValid;//wm->ourRobot[8].isValid;
     if(OppIsValid) Opp=wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
+    else Opp=Vector2D(100000,100000);
     OppIsInhisField = true;
     rc.fin_pos.loc=origin;
-    rc.fin_pos.dir=(Vector2D(0,0)-origin).dir().radian();
+    rc.fin_pos.dir=(origin2-origin).dir().radian();
     rc.maxSpeed = 1.4;
     index=-1;
     int object;
@@ -100,7 +101,7 @@ RobotCommand TacticConfront::getCommand()
                 rc.fin_pos.dir=diff2.dir().radian();
 
                 object=findnearestObject(wm->negativeShapes,wm->ourRobot[id].pos.loc);
-                if(object!=-1) ObsC=Circle2D(wm->negativeShapes.at(object).position,(wm->negativeShapes.at(object).roundedRadios+ROBOT_RADIUS+100));
+                if(object!=-1) ObsC=Circle2D(wm->negativeShapes.at(object).position,(wm->negativeShapes.at(object).roundedRadios+ROBOT_RADIUS+250));
                 rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
                 reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
                 if(reach) state = 1;
@@ -117,10 +118,7 @@ RobotCommand TacticConfront::getCommand()
                 rc.fin_pos.dir=diff2.dir().radian();
                 if(((wm->ourRobot[id].pos.loc-point2).length())>600)
                 {
-                    for(int j=0;j<100;j++)
-                    {
-                        qDebug() << " !!!!!!!!!!!!!!!! JESM PARID !!!!!!!!!!!!!!!!!!!!!!!!";
-                    }
+
                     state=0;
                 }
                 reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
@@ -237,7 +235,7 @@ RobotCommand TacticConfront::getCommand()
                         rc.fin_pos.dir=diff2.dir().radian();
 
                         object=findnearestObject(wm->positiveShapes,wm->ourRobot[id].pos.loc);
-                        if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+100));
+                        if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+250));
                         rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
                         reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
@@ -318,7 +316,7 @@ RobotCommand TacticConfront::getCommand()
                             rc.fin_pos.dir=0;//diff2.dir().radian();
 
                             object=findnearestObject(wm->positiveShapes,wm->ourRobot[id].pos.loc);
-                            if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+100));
+                            if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+250));
                             rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
                             reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
@@ -336,10 +334,7 @@ RobotCommand TacticConfront::getCommand()
                             rc.fin_pos.dir=0;//diff2.dir().radian();
                             if(((wm->ourRobot[id].pos.loc-point2).length())>600)
                             {
-                                for(int j=0;j<100;j++)
-                                {
-                                    qDebug() << " !!!!!!!!!!!!!!!! JESM PARID !!!!!!!!!!!!!!!!!!!!!!!!";
-                                }
+
                                 state=0;
                             }
                             reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
@@ -375,6 +370,22 @@ RobotCommand TacticConfront::getCommand()
     }
     //    qDebug()<< /*"fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ */"STATE = " << state ;
     //    qDebug() << "USE NAVIGATION IS : " << rc.useNav;
+
+    if(OppIsValid)
+    {
+        Segment2D Opp2O(Opp , origin2);
+
+        for(int j=0;j<segList.size(); j++)
+        {
+            if(segList.at(j).existIntersection(Opp2O))
+            {
+                OppIsInhisField = false;
+                break;
+            }
+        }
+    }
+
+    if(OppIsValid && OppIsInhisField && (wm->ourRobot[id].pos.loc-Opp).length() < 1000 ) DoNotEnterOpposedField=true;
     if(DoNotEnterOpposedField)
     {
         // DO NOT ENTER OPPOSED Field
@@ -391,27 +402,12 @@ RobotCommand TacticConfront::getCommand()
         }
     }
 
-
-    if(OppIsValid)
-    {
-        Segment2D Opp2O(Opp , origin2);
-
-        for(int j=0;j<segList.size(); j++)
-        {
-            if(segList.at(j).existIntersection(Opp2O))
-            {
-                OppIsInhisField = false;
-                break;
-            }
-        }
-    }
-
     if(!OppIsInhisField )
     {
-        rc.fin_pos.loc = wm->ourRobot[8].pos.loc;
+        rc.fin_pos.loc = Opp;//wm->ourRobot[8].pos.loc;
     }
 
-
+    qDebug() << " OPP Is In : (" << Opp.x << "," << Opp.y << " ) , Opp Is Valid Is : " << OppIsValid << " Opp Is In His Field Is : " << OppIsInhisField ;
     rc.fin_pos.loc.x=rcpast.x + 0.6*(rc.fin_pos.loc.x-rcpast.x);
     rc.fin_pos.loc.y=rcpast.y + 0.6*(rc.fin_pos.loc.y-rcpast.y);
     rcpast=rc.fin_pos.loc;
@@ -486,8 +482,8 @@ Vector2D TacticConfront::AvoidtoEnterCircle(Circle2D Ci, Vector2D pnt, Vector2D 
         c2r.setDir(angle);// c2f.dir()));
         Vector2D p = Ci.center() + c2r ;
         //        Avoided=true;
-        qDebug() << " Avoided point is : (" << finPOS.x << "," <<finPOS.y << ")  & Corrected is : ("<<
-                    p.x << "," << p.y << ")" ;
+//        qDebug() << " Avoided point is : (" << finPOS.x << "," <<finPOS.y << ")  & Corrected is : ("<<
+//                    p.x << "," << p.y << ")" ;
         return p;
     }
     else

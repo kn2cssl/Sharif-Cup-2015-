@@ -77,6 +77,7 @@ void SharifVision::parse(outputPacket &msg)
     }
     else if(msg.type() == 1)
     {
+        _wm->theirRobot.IsValid=false;
         shapes.clear();
         _wm->clean();
         //qDebug()<<"Data Message Received...";
@@ -218,13 +219,19 @@ void SharifVision::parse(outputPacket &msg)
 
         //        qDebug() << " GOOD SIZE = " << good.size() << "  SHAPES SIZE =  " << shapes.size();
 
-//        for(int i=0;i<good.size();i++)
-//        {
+        for(int i=0;i<good.size();i++)
+        {
 //            //             _wm->balls.push_back(good.at(i));
 //            //                            qDebug() << " Frame Count = " << good.at(i)->frameCount ;
 //            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
 //                        " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
-//        }
+        if(good.at(i).type=="Robot")
+        {
+            if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() < 300) good.removeAt(i);
+//            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
+//                             " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
+        }
+        }
 
 
         // End Of Shape Filtering
@@ -352,7 +359,7 @@ int SharifVision::findNearestShape(ShapeFiltering goal_shape, QList<ShapeFilteri
             {
                 if(dist2<dist)
                 {
-                    if(dist2<100000)
+                    if(dist2<1000000)
                     {
                         dist = dist2;
                         index = i;

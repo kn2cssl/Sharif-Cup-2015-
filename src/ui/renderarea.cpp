@@ -55,19 +55,31 @@
             painter.drawRect(CENTER_X-25,CENTER_Y-175,350,350);
 
             painter.setPen(QColor::fromRgb(0,0,0));
-            painter.drawEllipse(QPoint(150+CENTER_X,0+CENTER_Y),175,175);//200/2,200/2);
+            Vector2D center;
+            center=_sc->wm->circularBorder.center();
+            center.x /= WORLD_SCALE;
+            center.y /= WORLD_SCALE;
+            painter.drawEllipse(QPoint(center.x+CENTER_X,-center.y+CENTER_Y),175,175);//17+150+CENTER_X,-11+CENTER_Y),175,175);//200/2,200/2);
             painter.setPen(QColor::fromRgb(204,51,0));
-            painter.drawEllipse(QPoint(150+CENTER_X,0+CENTER_Y),175/2,175/2);
+            painter.drawEllipse(QPoint(center.x+CENTER_X,-center.y+CENTER_Y),175/2,175/2);
             //               H O L E S
             painter.setBrush(*brush_holes);
+            Vector2D HoleCenter;
+            HoleCenter=_sc->wm->goal1.center();
+//            qDebug() << " CENTER HOLE : (" << _sc->wm->goal1.center().x << "," << _sc->wm->goal1.center().y << ")";
+            HoleCenter.x /= WORLD_SCALE;
+            HoleCenter.y /= WORLD_SCALE;
             //painter.setPen(QColor::fromRgb(0,0,0));
-            painter.drawEllipse(QPoint(150+CENTER_X,0+CENTER_Y+170/4),25/2,25/2);
+            painter.drawEllipse(QPoint(HoleCenter.x+CENTER_X,-HoleCenter.y+CENTER_Y),25/2,25/2);
 
+            HoleCenter=_sc->wm->goal2.center();
+//            qDebug() << " CENTER HOLE : (" << _sc->wm->goal2.center().x << "," << _sc->wm->goal2.center().y << ")";
+            HoleCenter.x /= WORLD_SCALE;
+            HoleCenter.y /= WORLD_SCALE;
             //painter.setBrush(*brush_holes);
             //painter.setPen(QColor::fromRgb(0,0,0));
-            painter.drawEllipse(QPoint(150+CENTER_X,0+CENTER_Y-170/4),25/2,25/2);
+            painter.drawEllipse(QPoint(HoleCenter.x+CENTER_X,-HoleCenter.y+CENTER_Y),25/2,25/2);
 
-//            DrawShapes_sharif(_sc->wm->);
         }
 
         // FPS
@@ -80,15 +92,22 @@
         if(_sc->wm->mission==1)
         {
             painter.setBrush(*brush_region1);
-            //painter.drawRect(-100,150,100,50);//270,70,100,50);
-            painter.drawRect(-50,50,100,100);
+            Vector2D tl1=_sc->wm->region1.topLeft();
+            Vector2D br1=_sc->wm->region1.bottomRight();
+            Vector2D mean1((tl1.x+br1.x)/2,(tl1.y+br1.y)/2);
+//            painter.drawRect(-50,50,100,100);
+            painter.drawRect(tl1.x/WORLD_SCALE,tl1.y/WORLD_SCALE,br1.x/WORLD_SCALE,br1.y/WORLD_SCALE);
             painter.setPen(QColor::fromRgb(0,0,0));
-            painter.drawText(-20,100,/*-65,180,*/"Reg 1");
+            painter.drawText(mean1.x/WORLD_SCALE,mean1.y/WORLD_SCALE,/*-65,180,*/"Reg 1");
+
+            Vector2D tl2=_sc->wm->region2.topLeft();
+            Vector2D br2=_sc->wm->region2.bottomRight();
+            Vector2D mean2((tl2.x+br2.x)/2,(tl2.y+br2.y)/2);
 
             painter.setBrush(*brush_region2);
-            painter.drawRect(200,-50,100,-100);
+            painter.drawRect(tl2.x/WORLD_SCALE,tl2.y/WORLD_SCALE,br2.x/WORLD_SCALE,br2.y/WORLD_SCALE);
             painter.setPen(QColor::fromRgb(0,0,0));
-            painter.drawText(220,-100,"Reg 2");
+            painter.drawText(mean2.x/WORLD_SCALE,mean2.y/WORLD_SCALE,/*-65,180,*/"Reg 2");
 
             DrawShapes_sharif(_sc->wm->shapes4Region1,painter);
             DrawShapes_sharif(_sc->wm->shapes4Region2,painter);
@@ -150,7 +169,7 @@
         }
 //        DrawShapes_sharif();
 
-        DrawShapes_sharif(_sc->wm->theirRobot,painter);
+        if(_sc->wm->theirRobot.IsValid) DrawShapes_sharif(_sc->wm->theirRobot,painter);
 
 
 
