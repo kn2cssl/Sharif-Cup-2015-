@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QTimer>
 #include <QList>
+#include <QDebug>
 #include "shape.h"
 #include "soccer.h"
 #include "fpscounter.h"

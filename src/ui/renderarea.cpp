@@ -86,7 +86,7 @@
         painter.drawText(20,20,QString::number(_fps.FPS()));
 
         painter.translate(CENTER_X,CENTER_Y);
-
+        qDebug() << " MISION : " << _sc->wm->mission;
         // -------------------- Sharif Cup 2014 ---------------------\\
         //       // //   Draw Regions FOR MISION I
         if(_sc->wm->mission==1)
@@ -143,10 +143,14 @@
         {
             //    painter.drawLine(-50, 200,0,0);
             //    painter.drawLine(-50,-200,0,0);
+            qDebug() << _sc->wm->borders.size() << " BORDER SIZE       !!!! " ;
             for(int i=0;i<_sc->wm->borders.size();i++)
             {
-                painter.drawLine(_sc->wm->borders.at(i).origin().x/10,_sc->wm->borders.at(i).origin().y/10,
-                                 _sc->wm->borders.at(i).terminal().x/10,_sc->wm->borders.at(i).terminal().y/10);
+                Vector2D orgn(_sc->wm->borders.at(i).origin().x/10,-_sc->wm->borders.at(i).origin().y/10);
+                Vector2D trmnl(_sc->wm->borders.at(i).terminal().x/10,-_sc->wm->borders.at(i).terminal().y/10);
+                qDebug() << " ORIGIN : (" << orgn.x << "," <<orgn.y << ") , TERMINAL : (" << trmnl.x << "," << trmnl.y << ")" ;
+                painter.drawLine(orgn.x,orgn.y,
+                                 trmnl.x,trmnl.y);
                 //painter.drawLine(-50,-200,0,0);
             }
 

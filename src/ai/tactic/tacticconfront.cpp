@@ -27,6 +27,8 @@ RobotCommand TacticConfront::getCommand()
     index=-1;
     int object;
 
+    qDebug() << " BORDER SIIIIIIIIIIIIIIIIIIZe  : " << wm->borders.size();
+
     addData();
     addseg();
     //mergeData();
@@ -448,6 +450,12 @@ void TacticConfront::addseg()
     //tseg = new Segment2D(Vector2D(-500,-2000),Vector2D(0,0));
     //segList.insert(1,*tseg);
     segList=wm->borders;
+//    qDebug() << "BORDER SIZE : " << wm->borders.size();
+    for(int i=0;i<wm->borders.size();i++)
+    {
+//        qDebug() << " JAFARAM " ;
+        qDebug() << wm->borders.at(i).origin().x << wm->borders.at(i).origin().y << " , Terminal : "  << wm->borders.at(i).terminal().x << wm->borders.at(i).terminal().y ;
+    }
 
 }
 // ==================================================================================

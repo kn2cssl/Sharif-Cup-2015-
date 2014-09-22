@@ -33,8 +33,8 @@
         //    if(wm->balls.size() > 0)
         //    {
         //            qDebug()<< " BALLL . X = " << wm->balls.at(0)->pos.loc.x << " BALLL . Y = " <<  wm->balls.at(0)->pos.loc.y;
-                    qDebug() << " MAX x : " << region[1].maxX() << "  MIN X : " << region[1].minX() ;
-                    qDebug() << " MAX y : " << region[1].maxY() << "  MIN y : " << region[1].minY() ;
+//                    qDebug() << " MAX x : " << region[1].maxX() << "  MIN X : " << region[1].minX() ;
+//                    qDebug() << " MAX y : " << region[1].maxY() << "  MIN y : " << region[1].minY() ;
         //            if(region[0].IsInside(wm->balls.at(0)->pos.loc)) qDebug() << " THE BALLLLL ISSS INNNNN SIDE !!!!!!!!!!!!!!!!!!!!!!1";
         //    }
         index = -1;
@@ -78,7 +78,7 @@
                     rc.fin_pos.dir=diff2.dir().radian();
 
                     object=findnearestObject(mergedShapeList,wm->ourRobot[id].pos.loc);
-                    if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+170));
+                    if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+200));
                     rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
                     reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
@@ -161,7 +161,7 @@
 
         //    rcpast=rc.fin_pos.loc;
 
-        rc.maxSpeed/=1.2;
+        rc.maxSpeed/=1.4;
 
         if(IsInmargins(wm->ourRobot[id].pos.loc,400)) rc.maxSpeed /= 1.5 ;
         //    rc.fin_pos.loc=KeepInField(rc);

@@ -42,6 +42,7 @@ void SharifVision::parse(outputPacket &msg)
         }
         else if(msg.mission() == 2)
         {
+            _wm->borders.clear();
             for(int i=0;i<msg.mission2_lines().size();i++)
             {
                 outputPacket_line temp_seg = msg.mission2_lines(i);
