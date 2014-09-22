@@ -41,6 +41,7 @@ public:
     int numberOfShapes;
     Agent *myRobot;
     Shape theirRobot;
+    QList<Shape> Chasbideh;
         //-------First Mission----------
         Vector2D region1_tl;
         Vector2D region1_br;
@@ -48,6 +49,7 @@ public:
         Vector2D region2_br;
         QList<Shape> shapes4Region1;
         QList<Shape> shapes4Region2;
+
         //-----------------------------
 
         //-------Second Mission--------

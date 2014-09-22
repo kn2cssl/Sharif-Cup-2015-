@@ -27,8 +27,6 @@ RobotCommand TacticConfront::getCommand()
     index=-1;
     int object;
 
-    qDebug() << " BORDER SIIIIIIIIIIIIIIIIIIZe  : " << wm->borders.size();
-
     addData();
     addseg();
     //mergeData();
@@ -205,7 +203,7 @@ RobotCommand TacticConfront::getCommand()
             if(!IsOverTheLine || agentsPositive.at(i).x < origin.x)
             {
                 index=i;
-                qDebug() << agentsPositive.at(i).x << " Y ---- " << agentsPositive.at(i).y;// TOOOOOOOOOOOOOOOOOOOSHE !!!!!!!" << index ;
+//                qDebug() << agentsPositive.at(i).x << " Y ---- " << agentsPositive.at(i).y;// TOOOOOOOOOOOOOOOOOOOSHE !!!!!!!" << index ;
                 //goalRegion=agentsPositive.at(i).goalRegion;
                 temp2=1;
                 break;
@@ -387,6 +385,7 @@ RobotCommand TacticConfront::getCommand()
     }
 
     if(OppIsValid && OppIsInhisField && (wm->ourRobot[id].pos.loc-Opp).length() < 1000 ) DoNotEnterOpposedField=true;
+    if(!OppIsValid || (wm->ourRobot[id].pos.loc-Opp).length() > 1000 ) DoNotEnterOpposedField=false;
     if(DoNotEnterOpposedField)
     {
         // DO NOT ENTER OPPOSED Field
@@ -403,15 +402,19 @@ RobotCommand TacticConfront::getCommand()
         }
     }
 
+    Circle2D c(Opp,ROBOT_RADIUS*3+100);
+    rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+
     if(!OppIsInhisField )
     {
         rc.fin_pos.loc = Opp;//wm->ourRobot[8].pos.loc;
     }
 
-    qDebug() << " OPP Is In : (" << Opp.x << "," << Opp.y << " ) , Opp Is Valid Is : " << OppIsValid << " Opp Is In His Field Is : " << OppIsInhisField ;
-    rc.fin_pos.loc.x=rcpast.x + 0.6*(rc.fin_pos.loc.x-rcpast.x);
-    rc.fin_pos.loc.y=rcpast.y + 0.6*(rc.fin_pos.loc.y-rcpast.y);
-    rcpast=rc.fin_pos.loc;
+//    qDebug() << " OPP Is In : (" << Opp.x << "," << Opp.y << " ) , Opp Is Valid Is : " << OppIsValid << " Opp Is In His Field Is : " << OppIsInhisField ;
+//    rc.fin_pos.loc.x=rcpast.x + 0.6*(rc.fin_pos.loc.x-rcpast.x);
+//    rc.fin_pos.loc.y=rcpast.y + 0.6*(rc.fin_pos.loc.y-rcpast.y);
+//    rcpast=rc.fin_pos.loc;
+//    qDebug() << "RC FIN POS : (" << rc.fin_pos.loc.x << "," << rc.fin_pos.loc.y << ")";
     //    qDebug() << " DIST To Final Pos = " << (wm->ourRobot[id].pos.loc - rc.fin_pos.loc).length();
     rc.maxSpeed /= 1.5;
     rc.useNav=false;
@@ -454,7 +457,7 @@ void TacticConfront::addseg()
     for(int i=0;i<wm->borders.size();i++)
     {
 //        qDebug() << " JAFARAM " ;
-        qDebug() << wm->borders.at(i).origin().x << wm->borders.at(i).origin().y << " , Terminal : "  << wm->borders.at(i).terminal().x << wm->borders.at(i).terminal().y ;
+//        qDebug() << wm->borders.at(i).origin().x << wm->borders.at(i).origin().y << " , Terminal : "  << wm->borders.at(i).terminal().x << wm->borders.at(i).terminal().y ;
     }
 
 }

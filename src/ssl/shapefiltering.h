@@ -22,10 +22,11 @@ private:
     int RECTcount;
     int PENTAcount;
     int CIRcount;
+    int Robotcount;
 
     bool shapeDetected;
 
-    int shapeCount[4];
+    int shapeCount[5];
 
 
 signals:

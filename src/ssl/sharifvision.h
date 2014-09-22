@@ -24,6 +24,7 @@ private:
     void parse(outputPacket &msg);
     void addToRegion1(ShapeFiltering input);
     void addToRegion2(ShapeFiltering input);
+    void addToChasbideh(ShapeFiltering input);
     void addToNegative(ShapeFiltering input);
     void addToPositive(ShapeFiltering input);
     void addToRobot(ShapeFiltering input);

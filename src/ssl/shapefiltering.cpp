@@ -6,6 +6,7 @@ ShapeFiltering::ShapeFiltering()
     RECTcount = 0;
     PENTAcount = 0;
     CIRcount = 0;
+    Robotcount = 0;
 
     checked = false;
 
@@ -16,6 +17,7 @@ ShapeFiltering::ShapeFiltering()
 
 void ShapeFiltering::shapeManager(std::string type)
 {
+//    qDebug() << " TRI : " << TRIcount << " , RECT count : " << RECTcount << " , Cir Count :" << CIRcount << " , Penta Count :" << PENTAcount ;
 //    qDebug()<<"Before change : " << QString::fromStdString(this->type);
 //    qDebug()<<"1";
 
@@ -61,16 +63,27 @@ void ShapeFiltering::shapeManager(std::string type)
                 return ;
             }
         }
+        else if(type == "Robot")
+        {
+            Robotcount++;
+            if(Robotcount > 2000)
+            {
+                shapeDetected = true;
+                this->type = "Robot";
+                return ;
+            }
+        }
 
         shapeCount[0] = TRIcount;
         shapeCount[1] = RECTcount;
         shapeCount[2] = PENTAcount;
         shapeCount[3] = CIRcount;
+        shapeCount[4] = Robotcount;
     }
 
         int index = -1;
         int max = 0;
-        for(int i=0;i<4;i++)
+        for(int i=0;i<5;i++)
         {
             if(shapeCount[i]>max)
             {
@@ -87,6 +100,8 @@ void ShapeFiltering::shapeManager(std::string type)
             this->type = "PENTA";
         if(index == 3)
             this->type = "CIR";
+        if(index == 4)
+            this->type = "Robot";
 
 //        qDebug()<<QString::fromStdString(this->type);
 
