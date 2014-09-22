@@ -4,8 +4,7 @@ TacticConfront::TacticConfront(WorldModel *worldmodel, QObject *parent) :
     Tactic("TacticConfront", worldmodel, parent)
 {
     count=0;
-    origin=Vector2D(2200,0);
-    origin2=Vector2D(-1500,0);
+
     obs=0;
     rcpast=Vector2D(0,0);
     DoNotEnterOpposedField=false;//true;//
@@ -427,19 +426,16 @@ void TacticConfront::addData()
     {
         agentsNegative.push_back(wm->negativeShapes.at(k).position);
     }
-    //    agentsNegative.insert(0,wm->ball.pos.loc);//wm->ourRobot[0].pos.loc);
-    //    agentsNegative.insert(1,wm->ourRobot[1].pos.loc);
-    //    agentsNegative.insert(2,wm->ourRobot[2].pos.loc);
 
     agentsPositive.clear();
     for(int k=0;k<wm->positiveShapes.size();k++)
     {
         agentsPositive.push_back(wm->positiveShapes.at(k).position);
     }
-    //    agentsPositive.insert(0,wm->ourRobot[4].pos.loc);//wm->ourRobot[0].pos.loc);
-    //    agentsPositive.insert(1,wm->ourRobot[5].pos.loc);
 
-    //    agentsPositive.insert(2,wm->oppRobot[0].pos.loc);
+    origin=wm->endPoint;//Vector2D(2200,0);
+    origin2=Vector2D(-1500,0);
+
 }
 // ==================================================================================
 void TacticConfront::addseg()

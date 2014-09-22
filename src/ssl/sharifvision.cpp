@@ -23,16 +23,19 @@ void SharifVision::parse(outputPacket &msg)
 
         if(msg.mission() == 1)
         {
+
             Vector2D tl1(msg.mission1_region1_tl_x(),msg.mission1_region1_tl_y());
             Vector2D br1(msg.mission1_region1_br_x(),msg.mission1_region1_br_y());
-            Rect2D region1(tl1,br1);
+//                    qDebug() << "  MESSAGE TOP LEFT.x = " <<msg.mission1_region1_tl_x() << "    TOP LEFT . Y =  " << msg.mission1_region1_tl_y();
+//                    qDebug() << " MESSAGE BOTTOM RIGHT.x = " <<msg.mission1_region1_br_x() << "    BOTTOM ROGHT . Y =  " << msg.mission1_region1_br_y();
 
             Vector2D tl2(msg.mission1_region2_tl_x(),msg.mission1_region2_tl_y());
             Vector2D br2(msg.mission1_region2_br_x(),msg.mission1_region2_br_y());
-            Rect2D region2(tl2,br2);
 
-            _wm->region1 = region1;
-            _wm->region2 = region2;
+            _wm->region1_tl = tl1;
+            _wm->region1_br = br1;
+            _wm->region2_tl = tl2;
+            _wm->region2_br = br2;
 
             Vector2D end(msg.mission1_end_x(),msg.mission1_end_y());
             _wm->endPoint = end;

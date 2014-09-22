@@ -22,6 +22,7 @@ public:
     Vector2D KeepInField(RobotCommand rc);
     Vector2D AvoidtoEnterCircle(Circle2D Ci , Vector2D pnt, Vector2D finPOS);
     int findnearestObject(QList<Shape> list,Vector2D Pos);
+    bool IsInmargins(Vector2D pnt,double margin);
 
 private:
     QList<Vector2D> agentsR0;

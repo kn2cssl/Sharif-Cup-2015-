@@ -92,22 +92,28 @@
         if(_sc->wm->mission==1)
         {
             painter.setBrush(*brush_region1);
-            Vector2D tl1=_sc->wm->region1.topLeft();
-            Vector2D br1=_sc->wm->region1.bottomRight();
-            Vector2D mean1((tl1.x+br1.x)/2,(tl1.y+br1.y)/2);
+            QPoint tl1(int(_sc->wm->region1_tl.x/WORLD_SCALE),-int(_sc->wm->region1_tl.y/WORLD_SCALE));
+            QPoint br1(int(_sc->wm->region1_br.x/WORLD_SCALE),-int(_sc->wm->region1_br.y/WORLD_SCALE));
+            QRect region1(tl1,br1);
+            Vector2D mean1((tl1.x()+br1.x())/2,(tl1.y()+br1.y())/2);
 //            painter.drawRect(-50,50,100,100);
-            painter.drawRect(tl1.x/WORLD_SCALE,tl1.y/WORLD_SCALE,br1.x/WORLD_SCALE,br1.y/WORLD_SCALE);
+//            painter.drawRect(tl1.x/WORLD_SCALE,tl1.y/WORLD_SCALE,br1.x/WORLD_SCALE,br1.y/WORLD_SCALE);
+            painter.drawRect(region1);
             painter.setPen(QColor::fromRgb(0,0,0));
-            painter.drawText(mean1.x/WORLD_SCALE,mean1.y/WORLD_SCALE,/*-65,180,*/"Reg 1");
+            painter.drawText(mean1.x-20,mean1.y,/*-65,180,*/"Reg 1");
 
-            Vector2D tl2=_sc->wm->region2.topLeft();
-            Vector2D br2=_sc->wm->region2.bottomRight();
-            Vector2D mean2((tl2.x+br2.x)/2,(tl2.y+br2.y)/2);
+            QPoint tl2(int(_sc->wm->region2_tl.x/WORLD_SCALE),-int(_sc->wm->region2_tl.y/WORLD_SCALE));
+            QPoint br2(int(_sc->wm->region2_br.x/WORLD_SCALE),-int(_sc->wm->region2_br.y/WORLD_SCALE));
+            QRect region2(tl2,br2);
+            Vector2D mean2((tl2.x()+br2.x())/2,(tl2.y()+br2.y())/2);
+//            qDebug() << " T.L : (" << tl2.x << "," <<tl2.y << ") , B.R : (" << br2.x << "," << br2.y<<") , MEAN : ( " << mean2.x << "," << mean2.y << ")";
 
             painter.setBrush(*brush_region2);
-            painter.drawRect(tl2.x/WORLD_SCALE,tl2.y/WORLD_SCALE,br2.x/WORLD_SCALE,br2.y/WORLD_SCALE);
+            painter.drawRect(region2);
+//            painter.drawRect(tl2.x/WORLD_SCALE,tl2.y/WORLD_SCALE,br2.x/WORLD_SCALE,br2.y/WORLD_SCALE);
+//            painter.drawRect();
             painter.setPen(QColor::fromRgb(0,0,0));
-            painter.drawText(mean2.x/WORLD_SCALE,mean2.y/WORLD_SCALE,/*-65,180,*/"Reg 2");
+            painter.drawText(mean2.x-20,mean2.y,/*-65,180,*/"Reg 2");
 
             DrawShapes_sharif(_sc->wm->shapes4Region1,painter);
             DrawShapes_sharif(_sc->wm->shapes4Region2,painter);

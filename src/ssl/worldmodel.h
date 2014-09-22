@@ -42,8 +42,10 @@ public:
     Agent *myRobot;
     Shape theirRobot;
         //-------First Mission----------
-        Rect2D region1;
-        Rect2D region2;
+        Vector2D region1_tl;
+        Vector2D region1_br;
+        Vector2D region2_tl;
+        Vector2D region2_br;
         QList<Shape> shapes4Region1;
         QList<Shape> shapes4Region2;
         //-----------------------------

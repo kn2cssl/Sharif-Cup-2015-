@@ -4,17 +4,7 @@
 TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
     Tactic("TacticPush2Goal", worldmodel, parent)
 {
-    Vector2D center;//(1667,110);
-    center=wm->circularBorder.center();
-    circularBorder      .assign(center,(1700/2));//+ROBOT_RADIUS);
-    circularBorderOut   .assign(center,(1300));
-    circularBorderDANGER.assign(center,circularBorder.radius()+ROBOT_RADIUS);//+200);
-    circularBorder2     .assign(center,circularBorder.radius()+ROBOT_RADIUS+100);
 
-    hole1.assign(wm->goal1.center(),250/2);//250
-    hole2.assign(wm->goal2.center(),250/2);
-    hole1_Offset.assign(wm->goal1.center(),300/2);//300
-    hole2_Offset.assign(wm->goal2.center(),300/2);
 
 //    hole1.assign(Vector2D(1500+167,110+(1700/4)),250/2);//250
 //    hole2.assign(Vector2D(1500+167,110-(1700/4)),250/2);
@@ -33,6 +23,9 @@ TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
 RobotCommand TacticPush2Goal::getCommand()
 {
     oppIsValid = wm->ourRobot[0].isValid;//wm->theirRobot.IsValid;// opposite robot
+    addData();
+
+    sortData();
     if(!oppIsValid) opp = Vector2D(1000000,1000000);
     opp = wm->ourRobot[0].pos.loc;//wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
     OppIsKhoraak=!circularBorder2.contains(opp);//out of his field
@@ -48,9 +41,6 @@ RobotCommand TacticPush2Goal::getCommand()
     rc.fin_pos.loc=Vector2D(400,0);//circularBorder.center();
     rc.maxSpeed = 1.2;
 
-    addData();
-
-    sortData();
 
     index=-1;
     int tah=balls.size()-1;
@@ -246,6 +236,19 @@ RobotCommand TacticPush2Goal::getCommand()
 
             balls.clear();
             balls=wm->balls;//wm->ourRobot[0].pos.loc);
+
+            Vector2D center;//(1667,110);
+            center=wm->circularBorder.center();
+            circularBorder      .assign(center,(1700/2));//+ROBOT_RADIUS);
+            circularBorderOut   .assign(center,(1300));
+            circularBorderDANGER.assign(center,circularBorder.radius()+ROBOT_RADIUS);//+200);
+            circularBorder2     .assign(center,circularBorder.radius()+ROBOT_RADIUS+100);
+
+            hole1.assign(wm->goal1.center(),250/2);//250
+            hole2.assign(wm->goal2.center(),250/2);
+            hole1_Offset.assign(wm->goal1.center(),300/2);//300
+            hole2_Offset.assign(wm->goal2.center(),300/2);
+
             //balls.insert(1,wm->ourRobot[1].pos.loc);
             //balls.insert(2,wm->ourRobot[2].pos.loc);
 
