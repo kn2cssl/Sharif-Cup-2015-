@@ -20,6 +20,7 @@ private:
 
     QList<ShapeFiltering> good;
     QList<ShapeFiltering> candidate;
+    QList<ShapeFiltering> robotList;
 
     void parse(outputPacket &msg);
     void addToRegion1(ShapeFiltering input);
@@ -30,6 +31,7 @@ private:
     void addToRobot(ShapeFiltering input);
 
     int findNearestShape(ShapeFiltering goal_shape, QList<ShapeFiltering> shape_list);
+    int findFarestRobot(void);
 
 private slots:
     void readPendingPacket(QByteArray data, QString ip, int port);

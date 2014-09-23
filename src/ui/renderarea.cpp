@@ -270,9 +270,9 @@
 //            _sc->wm->shapes4Region2.at(i).roundedRadios,_sc->wm->shapes4Region2.at(i).roundedRadios);
 
             painter.drawEllipse(QPoint(list.at(k).position.x/WORLD_SCALE,-list.at(k).position.y/WORLD_SCALE),
-                        list.at(k).roundedRadios,list.at(k).roundedRadios);
+                        list.at(k).roundedRadios/WORLD_SCALE,list.at(k).roundedRadios/WORLD_SCALE);
 
-            double Xtext=(list.at(k).position.x/WORLD_SCALE - 3*list.at(k).roundedRadios/4);
+            double Xtext=(list.at(k).position.x/WORLD_SCALE - list.at(k).roundedRadios/WORLD_SCALE);
             double Ytext=(-list.at(k).position.y/WORLD_SCALE );//+ list.at(k).roundedRadios);
             painter.drawText(Xtext,Ytext,QString::fromStdString(list.at(k).type));
         }

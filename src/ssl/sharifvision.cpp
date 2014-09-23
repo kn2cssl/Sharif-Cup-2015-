@@ -84,6 +84,7 @@ void SharifVision::parse(outputPacket &msg)
         _wm->theirRobot.IsValid=false;
         shapes.clear();
         _wm->clean();
+        robotList.clear();
         //qDebug()<<"Data Message Received...";
 
         _wm->numberOfShapes = msg.numberofshape();
@@ -111,260 +112,252 @@ void SharifVision::parse(outputPacket &msg)
 
         for(int i=0;i<shapes.size()-1;i++)
         {
+            //            qDebug() << i << " : Pos = ( " << shapes.at(i).position.x << " , " << shapes.at(i).position.y <<
+            //                        " , TYPE : " << QString::fromStdString(shapes.at(i).type) << " , Color : " << QString::fromStdString(shapes.at(i).color);
+
             for(int j=i+1;j<shapes.size();j++)
             {
-                if(shapes.at(i).position.dist2(shapes.at(j).position) < 3000)  // Remove repeated
+                if((shapes.at(i).position-shapes.at(j).position).length() < shapes.at(i).roundedRadios)  // Remove repeated
                 {// 10 cm
-                    if(shapes.at(j).type!="Robot") shapes.removeAt(j);
-                    //                    else qDebug() << " HOOOOOOOOOOOOOOOOOOOY BLACK ROBOT IS IN IMAGE !";
-                    else shapes.removeAt(i);
+                    //                    if(shapes.at(j).type!="Robot") shapes.removeAt(j);
+                    //                    //                    else qDebug() << " HOOOOOOOOOOOOOOOOOOOY BLACK ROBOT IS IN IMAGE !";
+                    /*else*/ shapes.removeAt(i);
                 }
             }
+
+
         }
 
-        for(int i=0;i<shapes.size()-1;i++)
+        //        for(int i=0;i<shapes.size()-1;i++)
+        //        {
+        //            if(shapes.at(i).type=="Robot")
+        //            {
+        //                if((shapes.at(i).position-_wm->ourRobot[8].pos.loc).length() < 100)
+        //                {
+        //                    shapes.removeAt(i); // Remove Our Robot From Shapes
+        //                    qDebug() << i<<" OUR ROBOT HAS BEEN REMOVED from (" << shapes.at(i).position.x << ","<<
+        //                                shapes.at(i).position.y << ")";
+        //                }
+        //            }
+        //        }
+
+        //        QList <ShapeFiltering> GoodTemp_list=good;
+        //        QList <ShapeFiltering> CandidateTemp_list=candidate;
+        //        good=shapes;
+        for(int i=0;i<shapes.size();i++)
         {
-            if((shapes.at(i).position-_wm->ourRobot[8].pos.loc).length() < 1050)
-            {
-                shapes.removeAt(i); // Remove Our Robot From Shapes
-                ////            qDebug() << i<<" OUR ROBOT HAS BEEN REMOVED from (" << shapes.at(i).position.x << ","<<
-                ////                        shapes.at(i).position.y << ")";
-            }
-        }
+            //            //ShapeFiltering shf = shapes.at(i);
+            int index = findNearestShape(shapes.at(i),good);
+            //            qDebug() << "Index = " << index;
 
-
-    //        QList <ShapeFiltering> GoodTemp_list=good;
-    //        QList <ShapeFiltering> CandidateTemp_list=candidate;
-    //        good=shapes;
-    for(int i=0;i<shapes.size();i++)
-    {
-        //            //ShapeFiltering shf = shapes.at(i);
-        int index = findNearestShape(shapes.at(i),good);
-        //            qDebug() << "Index = " << index;
-
-        ////            qDebug()<<"1";
-
-        if(index == -1)
-        {
-            index = findNearestShape(shapes.at(i),candidate);
+            ////            qDebug()<<"1";
 
             if(index == -1)
             {
-                candidate.push_back(shapes.at(i));
-                //                list.push_back(shapes.at(i)->pos);
-                candidate.last().checked = true;
-                //                candidate.last()->seenAt(list, time, cid);
-                candidate.last().set(shapes.at(i).position,shapes.at(i).roundedRadios,shapes.at(i).color,shapes.at(i).type);
-                //                    candidate.last().shapeManager(shapes.at(i).type);
-            }
-            else
-            {
-                //                    CandidateTemp_list.removeAt(index);
-                candidate[index].plusFrameCount();
-                candidate[index].checked = true;
-                float radius=candidate[index].roundedRadios+0.06*(shapes.at(i).roundedRadios-candidate[index].roundedRadios);
-                Vector2D posit;
-                posit.x=candidate[index].position.x+0.4*(shapes.at(i).position.x-candidate[index].position.x);
-                posit.y=candidate[index].position.y+0.4*(shapes.at(i).position.y-candidate[index].position.y);
+                index = findNearestShape(shapes.at(i),candidate);
 
-                candidate[index].set(posit,radius,shapes.at(i).color,shapes.at(i).type);
-                //                    candidate[index].shapeManager(shapes.at(i).type);
-                //                list.push_back(shapes.at(i)->pos);
-                //                candidate.at(index)->seenAt(list, time, cid);
-            }
-        }
-        else
-        {
-            //good.at(index)->frameCount++;
-            //                GoodTemp_list.removeAt(index);
-            good[index].checked = true;
-            float radius=good[index].roundedRadios+0.06*(shapes.at(i).roundedRadios-good[index].roundedRadios);
-            Vector2D posit;
-            posit.x=good[index].position.x+0.4*(shapes.at(i).position.x-good[index].position.x);
-            posit.y=good[index].position.y+0.4*(shapes.at(i).position.y-good[index].position.y);
-
-            good[index].set(posit,radius,shapes.at(i).color,shapes.at(i).type);
-            //                qDebug()<<"Before change : " << QString::fromStdString(good[index].type);
-            good[index].shapeManager(shapes.at(i).type);
-            //                qDebug()<<"After : " << QString::fromStdString(good[index].type);
-        }
-    }
-
-
-    for(int i=0;i<candidate.size();i++)
-    {
-        if(candidate.at(i).checked)
-        {
-            candidate[i].checked = false;
-
-            if( candidate.at(i).frameCount > 35)
-            {
-                if(candidate.at(i).type=="Robot")
+                if(index == -1)
                 {
-                    good.push_back(candidate.at(i));
-                    //                    qDebug() << " Befor Being good  : " << good.last().frameCount;
-                    good.last().frameCount = 200;
-                    //                    qDebug() << " after Being good  : " << good.last().frameCount;
-                    candidate.removeAt(i);}
+                    candidate.push_back(shapes.at(i));
+                    //                list.push_back(shapes.at(i)->pos);
+                    candidate.last().checked = true;
+                    //                candidate.last()->seenAt(list, time, cid);
+                    candidate.last().set(shapes.at(i).position,shapes.at(i).roundedRadios,shapes.at(i).color,shapes.at(i).type);
+                    //                    candidate.last().shapeManager(shapes.at(i).type);
+                }
                 else
                 {
+                    //                    CandidateTemp_list.removeAt(index);
+                    candidate[index].plusFrameCount();
+                    candidate[index].checked = true;
+                    float radius=candidate[index].roundedRadios+0.06*(shapes.at(i).roundedRadios-candidate[index].roundedRadios);
+                    Vector2D posit;
+                    posit.x=candidate[index].position.x+0.4*(shapes.at(i).position.x-candidate[index].position.x);
+                    posit.y=candidate[index].position.y+0.4*(shapes.at(i).position.y-candidate[index].position.y);
 
-                    good.push_back(candidate.at(i));
-                    //                    qDebug() << " Befor Being good  : " << good.last().frameCount;
-                    good.last().frameCount = 120;
-                    //                    qDebug() << " after Being good  : " << good.last().frameCount;
-                    candidate.removeAt(i);
+                    candidate[index].set(posit,radius,shapes.at(i).color,shapes.at(i).type);
+                    //                    candidate[index].shapeManager(shapes.at(i).type);
+                    //                list.push_back(shapes.at(i)->pos);
+                    //                candidate.at(index)->seenAt(list, time, cid);
                 }
-
-            }
-        }
-        else
-        {
-            candidate[i].checked = false;
-            candidate[i].minusFrameCount();
-            if( candidate.at(i).frameCount <= 0)
-            {
-                candidate.removeAt(i);
-            }
-        }
-    }
-
-    for(int i=0;i<good.size();i++)
-    {
-        if(good.at(i).checked)
-        {
-            good[i].checked = false;
-        }
-        else
-        {
-            good[i].checked = false;
-            good[i].minusFrameCount();
-            if( good.at(i).frameCount < 50)
-            {
-                candidate.push_back(good.at(i));
-                good.removeAt(i);
-            }
-        }
-    }
-
-    //        qDebug() << " GOOD SIZE = " << good.size() << "  SHAPES SIZE =  " << shapes.size();
-
-    for(int i=0;i<good.size();i++)
-    {
-        //            //             _wm->balls.push_back(good.at(i));
-        //            //                            qDebug() << " Frame Count = " << good.at(i)->frameCount ;
-        //            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
-        //                        " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
-        //        if(good.at(i).type=="Robot")
-        //        {
-        //            if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() < 300) good.removeAt(i);
-        //            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
-        //                             " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
-        //        }
-        //            /*if(good.at(i).type=="Robot")*/ qDebug() << i << QString::fromStdString(good.at(i).type) <<" : (" << good.at(i).position.x
-        //                                                      << "," << good.at(i).position.y<< ") , FRAME COUNT = " << good.at(i).frameCount;
-    }
-    }
-
-    // End Of Shape Filtering
-
-    if(msg.mission() == 1)
-    {
-
-
-        for(int i=0;i<good.size();i++)
-        {
-            //                good.at(i).color
-            //                good.at(i).type
-            //                RECT
-            //                CIR
-            //                TRI
-            //                PENTA
-            //                Chasbideh
-            //                Robot
-            //                if(good.at(i).color == "yellow" || good.at(i).color == "blue" || good.at(i).color == "violet")
-            if(good.at(i).type=="RECT" || good.at(i).type=="TRI")// || good.at(i).type=="")
-            {
-                addToRegion1(good.at(i));
-            }
-            //                else if(good.at(i).color == "red" || good.at(i).color == "green" || good.at(i).color == "cyan")
-            if(good.at(i).type=="CIR" || good.at(i).type=="PENTA")
-            {
-                addToRegion2(good.at(i));
-            }
-            else if(good.at(i).type == "Chasbideh")
-            {
-                addToChasbideh(good.at(i));
-            }
-
-
-        }
-    }
-    else if(msg.mission() == 2)
-    {
-        QList<ShapeFiltering> robotList;
-        for(int i=0;i<good.size();i++)
-        {
-            if(good.at(i).type=="Robot")
-            {
-                //                    if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() > 200)
-                //                        addToRobot(good.at(i));
-                robotList.push_back(good.at(i));
-            }
-            else if(good.at(i).type =="RECT" || good.at(i).type =="CIR")
-            {
-                addToNegative(good.at(i));
             }
             else
             {
-                addToPositive(good.at(i));
+                //good.at(index)->frameCount++;
+                //                GoodTemp_list.removeAt(index);
+                good[index].checked = true;
+                float radius=good[index].roundedRadios+0.06*(shapes.at(i).roundedRadios-good[index].roundedRadios);
+                Vector2D posit;
+                posit.x=good[index].position.x+0.2*(shapes.at(i).position.x-good[index].position.x);
+                posit.y=good[index].position.y+0.2*(shapes.at(i).position.y-good[index].position.y);
+
+                good[index].set(posit,radius,shapes.at(i).color,shapes.at(i).type);
+                //                qDebug()<<"Before change : " << QString::fromStdString(good[index].type);
+                good[index].shapeManager(shapes.at(i).type);
+                //                qDebug()<<"After : " << QString::fromStdString(good[index].type);
             }
         }
 
-        //-----Find Farest Robot
-        if(robotList.size() > 0)
+
+        for(int i=0;i<candidate.size();i++)
         {
-            double dist2,max = -1000000;
-            int index = -1;
-            for(int i=0;i<robotList.size();i++)
+            if(candidate.at(i).checked)
             {
-                qDebug() << i << " ROBOT : (" << robotList.at(i).position.x << ","<<robotList.at(i).position.y <<") Frame Count" <<
-                            robotList.at(i).frameCount;
-                dist2 = _wm->ourRobot[8].pos.loc.dist2(robotList.at(i).position);
-                if(max < dist2)
+                candidate[i].checked = false;
+                if(candidate.at(i).type != "Robot")
                 {
-//                    if(dist2>40000)
-//                    {
-                        max = dist2;
-                        //                    qDebug() << "Dist : " << dist2 << ", MAX :" << max ;
-                        index = i;
-//                    }
+                    if( candidate.at(i).frameCount > 25)
+                    {
+
+                        //                    else
+                        //                    {
+
+                        good.push_back(candidate.at(i));
+                        //                    qDebug() << " Befor Being good  : " << good.last().frameCount;
+                        good.last().frameCount = 160;
+                        //                    qDebug() << " after Being good  : " << good.last().frameCount;
+                        candidate.removeAt(i);
+                        //                    }
+
+                    }
+                }
+                else
+                {
+                    if( candidate.at(i).frameCount > 5)
+                    {
+
+                        //                    else
+                        //                    {
+
+                        good.push_back(candidate.at(i));
+                        //                    qDebug() << " Befor Being good  : " << good.last().frameCount;
+                        good.last().frameCount = 100;
+                        //                    qDebug() << " after Being good  : " << good.last().frameCount;
+                        candidate.removeAt(i);
+                        //                    }
+
+                    }
                 }
             }
-            //            qDebug()<<"index:"<<index;
-            if(index!=-1)
+            else
             {
-//                qDebug() << index << " ROBOT : (" << robotList.at(index).position.x << ","<<robotList.at(index).position.y <<")";
-                addToRobot(robotList.at(index));}
-        }
-    }
-    else if(msg.mission() == 3)
-    {
-        for(int i=0;i<good.size();i++)
-        {
-            if(good.at(i).type=="Robot")
-            {
-                if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() > 200)
-                    addToRobot(good.at(i));
+                candidate[i].checked = false;
+                candidate[i].minusFrameCount();
+                if( candidate.at(i).frameCount <= 0)
+                {
+                    candidate.removeAt(i);
+                }
             }
         }
+
+        for(int i=0;i<good.size();i++)
+        {
+            if(good.at(i).checked)
+            {
+                good[i].checked = false;
+            }
+            else
+            {
+                good[i].checked = false;
+                good[i].minusFrameCount();
+                if( good.at(i).frameCount < 50)
+                {
+                    candidate.push_back(good.at(i));
+                    good.removeAt(i);
+                }
+            }
+        }
+
+        //        qDebug() << " GOOD SIZE = " << good.size() << "  SHAPES SIZE =  " << shapes.size();
+
+        for(int i=0;i<good.size();i++)
+        {
+//            qDebug() << i << QString::fromStdString(good.at(i).type) <<" : (" << good.at(i).position.x
+//                     << "," << good.at(i).position.y<< ") , FRAME COUNT = " << good.at(i).frameCount << " , RADIUS : " << good.at(i).roundedRadios;
+            //            //             _wm->balls.push_back(good.at(i));
+            //            //                            qDebug() << " Frame Count = " << good.at(i)->frameCount ;
+            //            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
+            //                        " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
+            if(good.at(i).type=="Robot")
+            {
+                if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() < 100) good.removeAt(i);
+                else if(good.at(i).type=="Robot") robotList.push_back(good.at(i));
+                //            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
+                //                             " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
+            }
+            /*if(good.at(i).type=="Robot")*/
+        }
+
+
+        // End Of Shape Filtering
+
+        if(msg.mission() == 1)
+        {
+
+
+            for(int i=0;i<good.size();i++)
+            {
+                //                good.at(i).color
+                //                good.at(i).type
+                //                RECT
+                //                CIR
+                //                TRI
+                //                PENTA
+                //                Chasbideh
+                //                Robot
+                //                if(good.at(i).color == "yellow" || good.at(i).color == "blue" || good.at(i).color == "violet")
+                if(good.at(i).type=="RECT" || good.at(i).type=="TRI")// || good.at(i).type=="")
+                {
+                    addToRegion1(good.at(i));
+                }
+                //                else if(good.at(i).color == "red" || good.at(i).color == "green" || good.at(i).color == "cyan")
+                if(good.at(i).type=="CIR" || good.at(i).type=="PENTA")
+                {
+                    addToRegion2(good.at(i));
+                }
+                else if(good.at(i).type == "Chasbideh")
+                {
+                    addToChasbideh(good.at(i));
+                }
+
+
+            }
+        }
+        else if(msg.mission() == 2)
+        {
+            findFarestRobot();
+            for(int i=0;i<good.size();i++)
+            {
+                if(good.at(i).type =="RECT" || good.at(i).type =="CIR")
+                {
+                    addToNegative(good.at(i));
+                }
+                else if(good.at(i).type =="TRI" || good.at(i).type =="PENTA")
+                {
+                    addToPositive(good.at(i));
+                }
+            }
+        }
+        else if(msg.mission() == 3)
+        {
+            for(int i=0;i<good.size();i++)
+            {
+                if(good.at(i).type=="Robot")
+                {
+                    if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() > 100)
+                        addToRobot(good.at(i));
+                }
+            }
+        }
+
+        //        qDebug()<<"World Model Updated";
+
+
     }
-
-    //        qDebug()<<"World Model Updated";
 }
-
-//}
-
+// ==========================================================================
+//                ************************************
+// ==========================================================================
 void SharifVision::addToRegion1(ShapeFiltering input)
 {
     if(true/**/)
@@ -375,7 +368,7 @@ void SharifVision::addToRegion1(ShapeFiltering input)
     }
 
 }
-
+// ==========================================================================
 void SharifVision::addToRegion2(ShapeFiltering input)
 {
     if(true/**/)
@@ -385,7 +378,7 @@ void SharifVision::addToRegion2(ShapeFiltering input)
         _wm->shapes4Region2.push_back(t);
     }
 }
-// ========================================================
+// ==========================================================================
 void SharifVision::addToChasbideh(ShapeFiltering input)
 {
     Shape t;
@@ -393,7 +386,7 @@ void SharifVision::addToChasbideh(ShapeFiltering input)
     _wm->Chasbideh.push_back(t);
 }
 
-// GAND E MOHSEN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// ==========================================================================
 void SharifVision::addToNegative(ShapeFiltering input)
 {
     if(true)
@@ -403,7 +396,7 @@ void SharifVision::addToNegative(ShapeFiltering input)
         _wm->negativeShapes.push_back(t);
     }
 }
-
+// ==========================================================================
 void SharifVision::addToPositive(ShapeFiltering input)
 {
     if(true)
@@ -413,7 +406,7 @@ void SharifVision::addToPositive(ShapeFiltering input)
         _wm->positiveShapes.push_back(t);
     }
 }
-
+// ==========================================================================
 void SharifVision::addToRobot(ShapeFiltering input)
 {
     if(true)
@@ -424,7 +417,7 @@ void SharifVision::addToRobot(ShapeFiltering input)
         _wm->theirRobot.IsValid=true;
     }
 }
-
+// ==========================================================================
 int SharifVision::findNearestShape(ShapeFiltering goal_shape, QList<ShapeFiltering> shape_list)
 {
     double dist = 100000000000;
@@ -438,8 +431,8 @@ int SharifVision::findNearestShape(ShapeFiltering goal_shape, QList<ShapeFilteri
             {
                 if(dist2<dist)
                 {
-                    double sample=16*shape_list.at(i).roundedRadios;
-                    if(goal_shape.type=="Robot") sample *= 4;
+                    double sample=4*shape_list.at(i).roundedRadios+200;
+                    //                    if(goal_shape.type=="Robot") sample *= 200;
                     if(dist2<sample)
                     {
                         dist = dist2;
@@ -451,11 +444,35 @@ int SharifVision::findNearestShape(ShapeFiltering goal_shape, QList<ShapeFilteri
     }
     return index;
 }
-
-
-
-// END GAND E MOHSEN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+// ============================================================================================
+int SharifVision::findFarestRobot(void)
+{
+    double dist2,max = -1000000;
+    int index = -1;
+    for(int i=0;i<robotList.size();i++)
+    {
+        //        qDebug() << i << " ROBOT : (" << robotList.at(i).position.x << ","<<robotList.at(i).position.y <<") Frame Count" <<
+        //                    robotList.at(i).frameCount;
+        dist2 = (_wm->ourRobot[8].pos.loc-robotList.at(i).position).length();
+        if(max < dist2)
+        {
+            if(dist2>100)
+            {
+                max = dist2;
+                //                    qDebug() << "Dist : " << dist2 << ", MAX :" << max ;
+                index = i;
+                //                    }
+            }
+        }
+        //            qDebug()<<"index:"<<index;
+        if(index!=-1)
+        {
+            //                qDebug() << index << " ROBOT : (" << robotList.at(index).position.x << ","<<robotList.at(index).position.y <<")";
+            addToRobot(robotList.at(index));
+        }
+    }
+}
+// ==========================================================================
 void SharifVision::readPendingPacket(QByteArray data, QString ip, int port)
 {
     outputPacket message;
@@ -473,3 +490,6 @@ void SharifVision::readPendingPacket(QByteArray data, QString ip, int port)
         qDebug()<<QString::fromStdString(message.InitializationErrorString());
     }
 }
+// ==========================================================================
+// ==========================================================================
+// ==========================================================================

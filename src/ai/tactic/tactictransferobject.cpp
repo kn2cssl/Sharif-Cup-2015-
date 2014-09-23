@@ -93,7 +93,7 @@ RobotCommand TacticTransferObject::getCommand()
                 rc.fin_pos.dir=diff2.dir().radian();
 
                 object=findnearestObject(mergedShapeList,wm->ourRobot[id].pos.loc);
-                if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(1.5*mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+200));
+                if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+200));
                 rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
                 reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
@@ -121,7 +121,7 @@ RobotCommand TacticTransferObject::getCommand()
                 //if(diff2.length() > 1500) diff2.setLength(1500);
                 // if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
                 diff2.setLength(300);
-                if(((wm->ourRobot[id].pos.loc-point2).length())>500) state=0;
+                if(((wm->ourRobot[id].pos.loc-point2).length())>600) state=0;
                 if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<50) state=0;
                 Vector2D o2r = ( point2 - wm->ourRobot[id].pos.loc );
                 if(fabs(wm->ourRobot[id].pos.dir - o2r.dir().radian()) > AngleDeg::deg2rad(40))
@@ -131,7 +131,7 @@ RobotCommand TacticTransferObject::getCommand()
                 }
                 rc.fin_pos.loc=point2 + diff2;//5;
                 rc.fin_pos.dir=diff2.dir().radian();
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,10);
                 if(reach)
                     state = 3;
             }
@@ -216,7 +216,7 @@ RobotCommand TacticTransferObject::getCommand()
         }
 
         //qDebug() << rc.fin_pos.loc.x << " -------  Y = " << rc.fin_pos.loc.y << " STATE = " << state;
-        //            qDebug() << "STATE = " << state;
+                    qDebug() << "STATE = " << state;
     }
 
 
