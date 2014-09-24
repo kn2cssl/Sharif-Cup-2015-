@@ -223,7 +223,7 @@ void SharifVision::parse(outputPacket &msg)
                 }
                 else
                 {
-                    if( candidate.at(i).frameCount > 5)
+                    if( candidate.at(i).frameCount > 10)
                     {
 
                         //                    else
@@ -272,16 +272,17 @@ void SharifVision::parse(outputPacket &msg)
 
         for(int i=0;i<good.size();i++)
         {
-//            qDebug() << i << QString::fromStdString(good.at(i).type) <<" : (" << good.at(i).position.x
-//                     << "," << good.at(i).position.y<< ") , FRAME COUNT = " << good.at(i).frameCount << " , RADIUS : " << good.at(i).roundedRadios;
+            if(good.at(i).color=="cyan")
+                        qDebug() << i << QString::fromStdString(good.at(i).type) <<" : (" << good.at(i).position.x
+                                 << "," << good.at(i).position.y<< ") , FRAME COUNT = " << good.at(i).frameCount << " , RADIUS : " << good.at(i).roundedRadios;
             //            //             _wm->balls.push_back(good.at(i));
             //            //                            qDebug() << " Frame Count = " << good.at(i)->frameCount ;
             //            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
             //                        " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
             if(good.at(i).type=="Robot")
             {
-                if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() < 100) good.removeAt(i);
-                else if(good.at(i).type=="Robot") robotList.push_back(good.at(i));
+                //                if((good.at(i).position-_wm->ourRobot[8].pos.loc).length() < 100) good.removeAt(i);
+                /*else if(good.at(i).type=="Robot") */robotList.push_back(good.at(i));
                 //            qDebug() << i << " : Pos = ( " << good.at(i).position.x << " , " << good.at(i).position.y <<
                 //                             " , TYPE : " << QString::fromStdString(good.at(i).type) << " , Color : " << QString::fromStdString(good.at(i).color);
             }
@@ -305,20 +306,28 @@ void SharifVision::parse(outputPacket &msg)
                 //                PENTA
                 //                Chasbideh
                 //                Robot
+                //                yellow
+                //                blue
+                //                violet
+                //                red
+                //                green
+                //                cyan
+
                 //                if(good.at(i).color == "yellow" || good.at(i).color == "blue" || good.at(i).color == "violet")
-                if(good.at(i).type=="RECT" || good.at(i).type=="TRI")// || good.at(i).type=="")
+                if((good.at(i).color=="yellow"||good.at(i).color=="blue") && ( good.at(i).type=="PENTA" || good.at(i).type=="TRI" ))// || good.at(i).type=="")
                 {
                     addToRegion1(good.at(i));
                 }
                 //                else if(good.at(i).color == "red" || good.at(i).color == "green" || good.at(i).color == "cyan")
-                if(good.at(i).type=="CIR" || good.at(i).type=="PENTA")
-                {
-                    addToRegion2(good.at(i));
-                }
                 else if(good.at(i).type == "Chasbideh")
                 {
                     addToChasbideh(good.at(i));
                 }
+                else if(good.at(i).type != "Robot")//(good.at(i).type=="CIR" || good.at(i).type=="PENTA")
+                {
+                    addToRegion2(good.at(i));
+                }
+
 
 
             }
@@ -431,7 +440,7 @@ int SharifVision::findNearestShape(ShapeFiltering goal_shape, QList<ShapeFilteri
             {
                 if(dist2<dist)
                 {
-                    double sample=4*shape_list.at(i).roundedRadios+200;
+                    double sample=4*shape_list.at(i).roundedRadios+100;
                     //                    if(goal_shape.type=="Robot") sample *= 200;
                     if(dist2<sample)
                     {
@@ -456,10 +465,10 @@ int SharifVision::findFarestRobot(void)
         dist2 = (_wm->ourRobot[8].pos.loc-robotList.at(i).position).length();
         if(max < dist2)
         {
-            if(dist2>100)
+            if(dist2>ROBOT_RADIUS)
             {
                 max = dist2;
-                //                    qDebug() << "Dist : " << dist2 << ", MAX :" << max ;
+                qDebug() << "Dist : " << dist2 << ", MAX :" << max ;
                 index = i;
                 //                    }
             }

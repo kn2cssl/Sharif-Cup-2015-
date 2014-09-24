@@ -11,6 +11,15 @@ TacticConfront::TacticConfront(WorldModel *worldmodel, QObject *parent) :
     CanKickOpp = true;
 
     OppIsValid = true;
+
+    MAX_X = 2700; MIN_X=200;
+    MAX_Y = 1300; MIN_Y=-1400;//750;
+    mean_x=(MAX_X+MIN_X) / 2;
+    mean_y=(MAX_Y+MIN_Y) / 2;
+
+    statemargin=0;
+
+    OffsetforSeg=Vector2D(150,0);
 }
 
 RobotCommand TacticConfront::getCommand()
@@ -26,12 +35,21 @@ RobotCommand TacticConfront::getCommand()
     rc.maxSpeed = 1.4;
     index=-1;
     int object;
+    reach=false;
 
     addData();
     addseg();
     //mergeData();
     sortData();
 
+
+//    object=findnearestObject(wm->positiveShapes,wm->ourRobot[id].pos.loc);
+//    if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+50));
+//    rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+
+//    object=findnearestObject(wm->negativeShapes,wm->ourRobot[id].pos.loc);
+//    if(object!=-1) ObsC=Circle2D(wm->negativeShapes.at(object).position,(wm->negativeShapes.at(object).roundedRadios+ROBOT_RADIUS+50));
+//    rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
     //Line2D segline = testseg->line();
     //double y=segline.getX(500);
@@ -42,13 +60,17 @@ RobotCommand TacticConfront::getCommand()
     //   qDebug() << wm->ball.pos.loc.x<< "------ Y = " << wm->ball.pos.loc.y ;
     //    testseg->existIntersection();
 
+
+
+
+
     //---------------------------TRANSFER NEGATIVE OBJECTS OVER THE LINE ---------------
     for(int i=0;i<agentsNegative.size();i++)
     {
         //if(obstacle)wm->kn->)
         //{continue; }
         //origin.x=origin.x*(2*agentsNegative.at(i).goalRegion - 1 );
-        o2o = new Segment2D(origin , agentsNegative.at(i) );
+        o2o = new Segment2D(origin , agentsNegative.at(i).position );
         temp=0;
         bool IsOverTheLine=false;
         for(int j=0;j<segList.size(); j++)
@@ -77,15 +99,16 @@ RobotCommand TacticConfront::getCommand()
 
     if(index !=-1)
     {
-        Vector2D point2 = agentsNegative.at(index);//;//temp.loc;//wm->ourRobot[id].pos.loc;//agentsR0.first().loc;
+        point2 = agentsNegative.at(index).position;//;//temp.loc;//wm->ourRobot[id].pos.loc;//agentsR0.first().loc;
+        rad=agentsNegative.at(index).roundedRadios;
         Vector2D nrstpnt = findnearest(point2);
         Vector2D diff2 = nrstpnt - point2;// wm->ourRobot[id].pos.loc ;
-        bool reach=false;
+//        bool reach=false;
         // agentsNegative.
 
         if(temp!=0)
         {
-            //            qDebug() << "---------TRANSFER NEGATIVE OBJECTS OVER THE LINE ---------";
+//            qDebug() << "---------TRANSFER NEGATIVE OBJECTS OVER THE LINE ---------";
             switch(state)
             {
             case 0:{ //Go Behind the Object
@@ -100,9 +123,10 @@ RobotCommand TacticConfront::getCommand()
                 rc.fin_pos.dir=diff2.dir().radian();
 
                 object=findnearestObject(wm->negativeShapes,wm->ourRobot[id].pos.loc);
-                if(object!=-1) ObsC=Circle2D(wm->negativeShapes.at(object).position,(wm->negativeShapes.at(object).roundedRadios+ROBOT_RADIUS+250));
+                if(object!=-1) ObsC=Circle2D(wm->negativeShapes.at(object).position,(wm->negativeShapes.at(object).roundedRadios+ROBOT_RADIUS+200));
                 rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
+
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
                 if(reach) state = 1;
 
             }
@@ -120,7 +144,7 @@ RobotCommand TacticConfront::getCommand()
 
                     state=0;
                 }
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,70);
                 if(reach)
                     state = 2;
             }
@@ -135,7 +159,7 @@ RobotCommand TacticConfront::getCommand()
                 rc.fin_pos.loc=point2 + diff2;//5;
                 rc.fin_pos.dir=diff2.dir().radian();
 
-                if(((wm->ourRobot[id].pos.loc-point2).length())>500)
+                if(((wm->ourRobot[id].pos.loc-point2).length())>400)
                 {
                     state=0;
                 }
@@ -177,17 +201,17 @@ RobotCommand TacticConfront::getCommand()
     }
     // ---------------------------------------------------------------------------------
 
-    //--------------------------TRANSFER POSITIVE OBJECTS OVER THE LINE ----------------
+    //-----------------------   TRANSFER POSITIVE OBJECTS OVER THE LINE    -------------
     if(temp==0)
     {
-        //        qDebug() << "---------TRANSFER POSITIVE  ---------";
+//                qDebug() << "---------TRANSFER POSITIVE  ---------";
         for(int i=0;i<agentsPositive.size();i++)
         {
             //if(obstacle)wm->kn->)
             //{continue; }
             //r2o = new Segment2D(Vector2D(wm->ourRobot[id].pos.loc) , Vector2D(agentsPositive.at(i).pos));
             //qDebug() << 2*agentsPositive.at(i).goalRegion - 1 ;
-            o2o = new Segment2D(origin2 , Vector2D(agentsPositive.at(i)));
+            o2o = new Segment2D(origin2 , Vector2D(agentsPositive.at(i).position));
             temp2=0;
             IsOverTheLine=false;
             for(int j=0;j<segList.size(); j++)
@@ -200,7 +224,7 @@ RobotCommand TacticConfront::getCommand()
 
             }
 
-            if(!IsOverTheLine || agentsPositive.at(i).x < origin.x)
+            if(!IsOverTheLine || (agentsPositive.at(i).position.x < origin.x))
             {
                 index=i;
 //                qDebug() << agentsPositive.at(i).x << " Y ---- " << agentsPositive.at(i).y;// TOOOOOOOOOOOOOOOOOOOSHE !!!!!!!" << index ;
@@ -213,7 +237,8 @@ RobotCommand TacticConfront::getCommand()
 
         if(index!=-1) // Positive Objects are in field
         {
-            Vector2D point2 = agentsPositive.at(index);
+            Vector2D point2 = agentsPositive.at(index).position;
+            rad=agentsPositive.at(index).roundedRadios;
             Vector2D nrstpnt = findnearest(point2);
             Vector2D diff2 = nrstpnt - point2;
             bool reach=false;
@@ -234,10 +259,10 @@ RobotCommand TacticConfront::getCommand()
                         rc.fin_pos.dir=diff2.dir().radian();
 
                         object=findnearestObject(wm->positiveShapes,wm->ourRobot[id].pos.loc);
-                        if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+250));
+                        if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+150));
                         rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
-                        reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
+                        reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
                         if(reach) state = 1;
 
                     }
@@ -251,18 +276,20 @@ RobotCommand TacticConfront::getCommand()
                         rc.fin_pos.loc.y=point2.y +(side)*(100 + ROBOT_RADIUS)*(diff2.y)/(diff2.length());
                         rc.fin_pos.dir=diff2.dir().radian();
                         if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
-                        reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
+                        reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,50);
                         if(reach)
                             state = 2;
                     }
                         break;
                     case 2:{//Push
+                        rc.fin_pos.loc=point2 + diff2;//5;
+                        rc.fin_pos.dir=diff2.dir().radian();
                         //Vector2D diff2 = region2.center() - wm->ourRobot[id].pos.loc ;
                         rc.useNav = false;
                         rc.maxSpeed=1;
                         //if(diff2.length() > 1500) diff2.setLength(1500);
                         if(((wm->ourRobot[id].pos.loc-point2).length())>500) state=0;
-                        if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc/*point2*/).length())<50) state=0;
+                        if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc/*point2*/).length())<100) state=0;
                         diff2.setLength(300);
 
                         //                        Vector2D o2r = ( point2 - wm->ourRobot[id].pos.loc );
@@ -272,8 +299,7 @@ RobotCommand TacticConfront::getCommand()
                         //                            state=1;//4;
                         //                        }
 
-                        rc.fin_pos.loc=point2 + diff2;//5;
-                        rc.fin_pos.dir=diff2.dir().radian();
+
                     }
                         break;
                     case 3:{//Release
@@ -315,7 +341,7 @@ RobotCommand TacticConfront::getCommand()
                             rc.fin_pos.dir=0;//diff2.dir().radian();
 
                             object=findnearestObject(wm->positiveShapes,wm->ourRobot[id].pos.loc);
-                            if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+250));
+                            if(object!=-1) ObsC=Circle2D(wm->positiveShapes.at(object).position,(wm->positiveShapes.at(object).roundedRadios+ROBOT_RADIUS+150));
                             rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
                             reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
@@ -354,7 +380,7 @@ RobotCommand TacticConfront::getCommand()
                             rc.fin_pos.loc.x -= delta;
                             rc.fin_pos.dir=0;//diff2.dir().radian();
                             if(((wm->ourRobot[id].pos.loc-point2).length())>500) state=0;
-                            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<50) state=0;
+                            if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<100) state=0;
 
                         }
                             break;
@@ -370,13 +396,72 @@ RobotCommand TacticConfront::getCommand()
     //    qDebug()<< /*"fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ */"STATE = " << state ;
     //    qDebug() << "USE NAVIGATION IS : " << rc.useNav;
 
+
+    // =================== IS IN MARGINS ==================================
+    if(index != -1)
+    {
+//        Vector2D nrstpnt = findnearest(point2);
+//        Vector2D diff2 = nrstpnt - point2;
+        int mrgn=200;
+        Vector2D dlta;
+        if(false)//IsInmargins(point2,mrgn))
+        {
+            int side = ((point2.x-mean_x)/abs(point2.x-mean_x))*((point2.y-mean_y)/abs(point2.y-mean_y));
+            if(point2.x > MAX_X-mrgn || point2.x < MIN_X+mrgn) {
+                side *= ((point2.y-mean_y)/abs(point2.y-mean_y));
+                dlta=Vector2D(0,side*(ROBOT_RADIUS+20));}
+            else if(point2.y > MAX_Y-mrgn || point2.y < MIN_Y+mrgn) {
+                side *=((point2.x-mean_x)/abs(point2.x-mean_x));
+                dlta=Vector2D(side*(ROBOT_RADIUS+20),0);}
+            switch(statemargin)
+            {
+            case 0:{
+
+                rc.fin_pos.loc=point2+dlta;
+                rad += ROBOT_RADIUS + 50;
+//                    int rad = 70+ROBOT_RADIUS;
+                Circle2D c(point2,rad);
+                rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+
+//                qDebug()<< "In Margins Pos  : ball = ( " << point2.x << ","<< point2.y << ")";
+//                qDebug()<< "In Margins Pos  : delta = ( " << dlta.x << ","<< dlta.y << ")";
+//                qDebug()<< "In Margins Pos  : fin_pos = ( " << rc.fin_pos.loc.x << ","<<rc.fin_pos.loc.y << ")";
+//                qDebug()<< "In Margins Pos  : Robot = ( " << wm->ourRobot[id].pos.loc.x << ","<<wm->ourRobot[id].pos.loc.y << ")";
+                rc.fin_pos.dir=dlta.dir().radian()-side*M_PI/2;
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,20,7);
+    //                            wm->ourRobot[id].pos.loc,rc.fin_pos.loc,200);
+//                qDebug() << "dist To final Pos : " << (wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length();
+//                qDebug() << " Avoided : " << Avoided << "     reach" << reach;
+                if(reach) statemargin = 1;
+            }
+                break;
+
+            case 1:{
+                rc.fin_pos.dir = dlta.dir().radian() - side*0.9*M_PI ;
+                rc.fin_pos.loc=point2-dlta;
+//                qDebug() << "Fin_POS . dir = " << AngleDeg::rad2deg(rc.fin_pos.dir) << " ROBOT . dir = " <<  AngleDeg::rad2deg(wm->ourRobot[id].pos.dir);
+                if(((wm->ourRobot[id].pos.loc-point2).length())>300) statemargin=0;
+                double delta_ang=wm->ourRobot[id].pos.dir-rc.fin_pos.dir;
+                if (delta_ang >  M_PI) delta_ang -= (M_PI * 2);
+                if (delta_ang < -M_PI) delta_ang += (M_PI * 2);
+                if(fabs(delta_ang) < AngleDeg::deg2rad(10)) statemargin=0;
+                rc.maxSpeed=1.7;
+    //                bool chighz=wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,20,10);
+    //                if(chighz) statemargin=0;
+    //                if((wm->ourRobot[id].pos.loc.dir()-rc.fin_pos.dir)<AngleDeg::deg2rad(10)) statemargin=0;
+    //                if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<250) state=0;
+            }
+                break;
+            }
+        }
+    }
     if(OppIsValid)
     {
         Segment2D Opp2O(Opp , origin2);
 
-        for(int j=0;j<segList.size(); j++)
+        for(int j=0;j<seglistOffset.size(); j++)
         {
-            if(segList.at(j).existIntersection(Opp2O))
+            if(seglistOffset.at(j).existIntersection(Opp2O))
             {
                 OppIsInhisField = false;
                 break;
@@ -409,12 +494,13 @@ RobotCommand TacticConfront::getCommand()
     {
         rc.fin_pos.loc = Opp;//wm->ourRobot[8].pos.loc;
     }
+    qDebug() << "  S T A T E  :  " << state;
 
 //    qDebug() << " OPP Is In : (" << Opp.x << "," << Opp.y << " ) , Opp Is Valid Is : " << OppIsValid << " Opp Is In His Field Is : " << OppIsInhisField ;
 //    rc.fin_pos.loc.x=rcpast.x + 0.6*(rc.fin_pos.loc.x-rcpast.x);
 //    rc.fin_pos.loc.y=rcpast.y + 0.6*(rc.fin_pos.loc.y-rcpast.y);
 //    rcpast=rc.fin_pos.loc;
-//    qDebug() << "RC FIN POS : (" << rc.fin_pos.loc.x << "," << rc.fin_pos.loc.y << ")";
+    qDebug() << "RC FIN POS : (" << rc.fin_pos.loc.x << "," << rc.fin_pos.loc.y << ")";
     //    qDebug() << " DIST To Final Pos = " << (wm->ourRobot[id].pos.loc - rc.fin_pos.loc).length();
     rc.maxSpeed /= 1.5;
     rc.useNav=false;
@@ -427,17 +513,10 @@ void TacticConfront::addData()
 {
 
     agentsNegative.clear();
-    for(int k=0;k<wm->negativeShapes.size();k++)
-    {
-        agentsNegative.push_back(wm->negativeShapes.at(k).position);
-    }
+    agentsNegative=wm->negativeShapes;
 
     agentsPositive.clear();
-    for(int k=0;k<wm->positiveShapes.size();k++)
-    {
-        agentsPositive.push_back(wm->positiveShapes.at(k).position);
-    }
-
+    agentsPositive=wm->positiveShapes;
     origin=wm->endPoint;//Vector2D(2200,0);
     origin2=Vector2D(-1500,0);
 
@@ -447,15 +526,11 @@ void TacticConfront::addseg()
 {
 
     segList.clear(); // SO IMPORTANT !!!
-
-    //tseg = new Segment2D(Vector2D(-500, 2000),Vector2D(0,0));
-    //segList.insert(0,*tseg);
-    //tseg = new Segment2D(Vector2D(-500,-2000),Vector2D(0,0));
-    //segList.insert(1,*tseg);
     segList=wm->borders;
-//    qDebug() << "BORDER SIZE : " << wm->borders.size();
     for(int i=0;i<wm->borders.size();i++)
     {
+        Segment2D seg(wm->borders.at(i).origin()+OffsetforSeg,wm->borders.at(i).terminal()+OffsetforSeg);
+        seglistOffset.push_back(seg);
 //        qDebug() << " JAFARAM " ;
 //        qDebug() << wm->borders.at(i).origin().x << wm->borders.at(i).origin().y << " , Terminal : "  << wm->borders.at(i).terminal().x << wm->borders.at(i).terminal().y ;
     }
@@ -469,7 +544,7 @@ Vector2D TacticConfront::AvoidtoEnterCircle(Circle2D Ci, Vector2D pnt, Vector2D 
     if(Ci.HasIntersection(S) || Ci.contains(pnt) || Ci.contains(finPOS))
     {
         //        qDebug() << " HAS INTERSECTION WITH CIRCLE !! DO NOT ENTER THIS CIRCLE PLEASE !!!";
-        //        qDebug() << " HAS INTERSECTION WITH CIRCLE ( " << Ci.center().x << "," << Ci.center().y << " ) , Radius : " << Ci.radius() ;
+//                qDebug() << " HAS INTERSECTION WITH CIRCLE ( " << Ci.center().x << "," << Ci.center().y << " ) , Radius : " << Ci.radius() ;
         Vector2D c2r = pnt - Ci.center() ;
         Vector2D c2f = finPOS - Ci.center() ;
         c2r.setLength(Ci.radius()+50);
@@ -531,6 +606,19 @@ int TacticConfront::findnearestObject(QList<Shape> list, Vector2D Pos)
     }
     return indX;
 }
+// ==================================================================================
+bool TacticConfront::IsInmargins(Vector2D pnt, double margin)
+{
+    {
+        //
+        if((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin) || (pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin))
+        {
+            qDebug() << " IS IN MARGIN ";
+            return true;
+             }
+        else return false;
+    }
+}
 
 //void TacticConfront::mergeData()
 //{
@@ -560,8 +648,8 @@ void TacticConfront::sortData()
         //{
         for(int k=i+1;k<agentsPositive.size();k++)
         {
-            if(( (agentsPositive.at(i)-wm->ourRobot[id].pos.loc).length2() +(agentsPositive.at(i)-findnearest(agentsPositive.at(i))).length2())
-                    > ((agentsPositive.at(k)-wm->ourRobot[id].pos.loc).length2() +((agentsPositive.at(i)- findnearest(agentsPositive.at(k))).length2() )) ) agentsPositive.swap(i,k);
+            if(( (agentsPositive.at(i).position-wm->ourRobot[id].pos.loc).length2() +(agentsPositive.at(i).position-findnearest(agentsPositive.at(i).position)).length2())
+                    > ((agentsPositive.at(k).position-wm->ourRobot[id].pos.loc).length2() +((agentsPositive.at(i).position- findnearest(agentsPositive.at(k).position)).length2() )) ) agentsPositive.swap(i,k);
         }
         //}
 
@@ -577,8 +665,8 @@ void TacticConfront::sortData()
 //            if( (agentsNegative.at(i)-wm->ourRobot[id].pos.loc/*findnearest(agentsNegative.at(i))*/).length2()
 //                    > (agentsNegative.at(k)-wm->ourRobot[id].pos.loc/*findnearest(agentsNegative.at(k))*/).length2() ) agentsNegative.swap(i,k);
 
-            if(( (agentsNegative.at(i)-wm->ourRobot[id].pos.loc).length2() +(agentsNegative.at(i)-findnearest(agentsNegative.at(i))).length2())
-                    > ((agentsNegative.at(k)-wm->ourRobot[id].pos.loc).length2() +((agentsNegative.at(i)- findnearest(agentsNegative.at(k))).length2() )) ) agentsNegative.swap(i,k);
+            if(( (agentsNegative.at(i).position-wm->ourRobot[id].pos.loc).length2() +(agentsNegative.at(i).position-findnearest(agentsNegative.at(i).position)).length2())
+                    > ((agentsNegative.at(k).position-wm->ourRobot[id].pos.loc).length2() +((agentsNegative.at(i).position- findnearest(agentsNegative.at(k).position)).length2() )) ) agentsNegative.swap(i,k);
 
 
         }

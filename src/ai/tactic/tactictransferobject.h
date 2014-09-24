@@ -38,6 +38,7 @@ private:
     double MAX_X , MAX_Y , MIN_X , MIN_Y , mean_x , mean_y ;
     //Rect2D region2;
     bool firstInit,Avoided;
+    bool AnyInMargin,AllInMargin;
     int state,statemargin;
     int index;
     int goalRegion;

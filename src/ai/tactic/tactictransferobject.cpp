@@ -10,8 +10,8 @@ TacticTransferObject::TacticTransferObject(WorldModel *worldmodel, QObject *pare
     //index=0;
     firstInit=true;//false;
 
-    MAX_X = 2500; MIN_X=850;
-    MAX_Y = 837; MIN_Y=-911;//750;
+    MAX_X = 1750; MIN_X=-1750;
+    MAX_Y = 1750; MIN_Y=-1750;//750;
     mean_x=(MAX_X+MIN_X) / 2;
     mean_y=(MAX_Y+MIN_Y) / 2;
 
@@ -19,6 +19,7 @@ TacticTransferObject::TacticTransferObject(WorldModel *worldmodel, QObject *pare
 
 RobotCommand TacticTransferObject::getCommand()
 {
+    AllInMargin=true;
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
     rc.useNav=true;
@@ -41,10 +42,12 @@ RobotCommand TacticTransferObject::getCommand()
     index = -1;
     for(int i=0;i<mergedList.size();i++)
     {
+//        qDebug() << i << " AT : (" << mergedList.at(i).pos.x << "," << mergedList.at(i).pos.y << ")";
         temp=0;
-        if(!region[mergedList.at(i).goalRegion].IsInside(mergedList.at(i).pos))
+        if(!region[mergedList.at(i).goalRegion].IsInside(mergedList.at(i).pos) && !IsInmargins(mergedList.at(i).pos,300))
         {
             //qDebug() <<" OBJECT :    " <<  mergedList.at(i).pos.x << " ------ Y = " << mergedList.at(i).pos.y;// TOOOOOOOOOOOOOOOOOOOSHE !!!!!!!" << index ;
+//            AllInMargin=false;
             index=i;
             goalRegion=mergedList.at(i).goalRegion;
             temp=1;
@@ -52,6 +55,25 @@ RobotCommand TacticTransferObject::getCommand()
         }
 
 
+    }
+    for(int i=0; i<mergedList.size(); i++)
+    {
+        if(!IsInmargins(mergedList.at(i).pos,300))
+        {
+            AllInMargin=false;
+        }
+    }
+    if(AllInMargin)
+    {
+        for(int i=0;i<mergedList.size();i++)
+        {
+            if(!region[mergedList.at(i).goalRegion].IsInside(mergedList.at(i).pos))
+            {
+                index=i;
+                goalRegion=mergedList.at(i).goalRegion;
+                break;
+            }
+        }
     }
 //    if(index ==-1)
 //    {
@@ -71,7 +93,7 @@ RobotCommand TacticTransferObject::getCommand()
 
 
 
-
+//     qDebug() << mergedList.size() << " MERGED SIZE " ;
     if(index != -1)
     {
         Vector2D point2 = mergedList.at(index).pos;
@@ -93,7 +115,7 @@ RobotCommand TacticTransferObject::getCommand()
                 rc.fin_pos.dir=diff2.dir().radian();
 
                 object=findnearestObject(mergedShapeList,wm->ourRobot[id].pos.loc);
-                if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+200));
+                if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+150));
                 rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
                 reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
@@ -104,7 +126,7 @@ RobotCommand TacticTransferObject::getCommand()
             case 1:{//Ready to Push
                 rc.useNav = false;
                 rc.maxSpeed=1.2;
-                rc.fin_pos.loc.x=point2.x - (100 + ROBOT_RADIUS)*(diff2.x)/(diff2.length());
+                rc.fin_pos.loc.x=point2.x - (100 + ROBOT_RADIUS)*(diff2.x)/(diff2.length()); // 100 >> Rounded Radius
                 rc.fin_pos.loc.y=point2.y - (100 + ROBOT_RADIUS)*(diff2.y)/(diff2.length());
                 rc.fin_pos.dir=diff2.dir().radian();
                 if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
@@ -163,35 +185,40 @@ RobotCommand TacticTransferObject::getCommand()
             }
         }
         Vector2D dlta;
-        double mrgn=200;
+        double mrgn=300;
         if(IsInmargins(point2,mrgn))
         {
+//            qDebug() << " IS IN MARGIN !!!!!!!!!";
             int side = ((point2.x-mean_x)/abs(point2.x-mean_x))*((point2.y-mean_y)/abs(point2.y-mean_y));
             if(point2.x > MAX_X-mrgn || point2.x < MIN_X+mrgn) {
                 side *= ((point2.y-mean_y)/abs(point2.y-mean_y));
-                dlta=Vector2D(0,side*(ROBOT_RADIUS+mergedShapeList.at(index).roundedRadios+50));}
+                dlta=Vector2D(side*10,side*(ROBOT_RADIUS+/*mergedShapeList.at(index).roundedRadios+*/50));}
             else if(point2.y > MAX_Y-mrgn || point2.y < MIN_Y+mrgn) {
                 side *=((point2.x-mean_x)/abs(point2.x-mean_x));
-                dlta=Vector2D(side*(ROBOT_RADIUS+mergedShapeList.at(index).roundedRadios+50),0);}
+                dlta=Vector2D(side*(ROBOT_RADIUS+/*mergedShapeList.at(index).roundedRadios+*/50),side*10);}
             switch(statemargin)
             {
             case 0:{
 
                 rc.fin_pos.loc=point2+dlta;
 
-                int rad = mergedShapeList.at(index).roundedRadios+30+ROBOT_RADIUS;
-                Circle2D c(point2,rad);
-                rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+//                object=findnearestObject(mergedShapeList,wm->ourRobot[id].pos.loc);
+//                if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS));
+//                rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
-                qDebug()<< "In Margins Pos  : ball = ( " << point2.x << ","<< point2.y << ")";
-                qDebug()<< "In Margins Pos  : delta = ( " << dlta.x << ","<< dlta.y << ")";
-                qDebug()<< "In Margins Pos  : fin_pos = ( " << rc.fin_pos.loc.x << ","<<rc.fin_pos.loc.y << ")";
-                qDebug()<< "In Margins Pos  : Robot = ( " << wm->ourRobot[id].pos.loc.x << ","<<wm->ourRobot[id].pos.loc.y << ")";
+//                int rad = mergedShapeList.at(index).roundedRadios+ROBOT_RADIUS;
+//                Circle2D c(point2,rad);
+//                rc.fin_pos.loc=AvoidtoEnterCircle(c,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+
+//                qDebug()<< "In Margins Pos  : ball = ( " << point2.x << ","<< point2.y << ")";
+//                qDebug()<< "In Margins Pos  : delta = ( " << dlta.x << ","<< dlta.y << ")";
+//                qDebug()<< "In Margins Pos  : fin_pos = ( " << rc.fin_pos.loc.x << ","<<rc.fin_pos.loc.y << ")";
+//                qDebug()<< "In Margins Pos  : Robot = ( " << wm->ourRobot[id].pos.loc.x << ","<<wm->ourRobot[id].pos.loc.y << ")";
                 rc.fin_pos.dir=dlta.dir().radian()-side*M_PI/2;
                 reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos,rc.fin_pos,20,7);
 //                            wm->ourRobot[id].pos.loc,rc.fin_pos.loc,200);
-                qDebug() << "dist To final Pos : " << (wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length();
-                qDebug() << " Avoided : " << Avoided << "     reach" << reach;
+//                qDebug() << "dist To final Pos : " << (wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length();
+//                qDebug() << " Avoided : " << Avoided << "     reach" << reach;
                 if(reach) statemargin = 1;
             }
                 break;
@@ -199,7 +226,7 @@ RobotCommand TacticTransferObject::getCommand()
             case 1:{
                 rc.fin_pos.dir = dlta.dir().radian() - side*0.9*M_PI ;
                 rc.fin_pos.loc=point2-dlta;
-                qDebug() << "Fin_POS . dir = " << AngleDeg::rad2deg(rc.fin_pos.dir) << " ROBOT . dir = " <<  AngleDeg::rad2deg(wm->ourRobot[id].pos.dir);
+//                qDebug() << "Fin_POS . dir = " << AngleDeg::rad2deg(rc.fin_pos.dir) << " ROBOT . dir = " <<  AngleDeg::rad2deg(wm->ourRobot[id].pos.dir);
                 if(((wm->ourRobot[id].pos.loc-point2).length())>300) statemargin=0;
                 double delta_ang=wm->ourRobot[id].pos.dir-rc.fin_pos.dir;
                 if (delta_ang >  M_PI) delta_ang -= (M_PI * 2);
@@ -215,8 +242,8 @@ RobotCommand TacticTransferObject::getCommand()
             }
         }
 
-        //qDebug() << rc.fin_pos.loc.x << " -------  Y = " << rc.fin_pos.loc.y << " STATE = " << state;
-                    qDebug() << "STATE = " << state;
+//        qDebug() << rc.fin_pos.loc.x << " -------  Y = " << rc.fin_pos.loc.y << " STATE = " << state;
+//                    qDebug() << "STATE = " << state;
     }
 
 
@@ -226,10 +253,10 @@ RobotCommand TacticTransferObject::getCommand()
     //    rc.fin_pos.loc.y=rcpast.y + 0.1*(rc.fin_pos.loc.y-rcpast.y);
 
     //    rcpast=rc.fin_pos.loc;
-
+//    qDebug() << " INDEX = " << index ;
     rc.maxSpeed/=1.4;
 
-    if(IsInmargins(wm->ourRobot[id].pos.loc,400)) rc.maxSpeed /= 1.5 ;
+    if(IsInmargins(wm->ourRobot[id].pos.loc,500)) rc.maxSpeed /= 1.5 ;
         rc.fin_pos.loc=KeepInField(rc);
 
     //        qDebug() << " This Object Is For Region " << goalRegion ;
@@ -245,6 +272,7 @@ RobotCommand TacticTransferObject::getCommand()
 // ============================================================================================
 void TacticTransferObject::addData()
 {
+    mergedShapeList.clear();
     mergedShapeList=wm->shapes4Region1;
     for(int i=0;i<wm->shapes4Region2.size();i++)
     {
@@ -257,8 +285,8 @@ void TacticTransferObject::addData()
     //        Size2D size1(dst.x,-dst.y);
     Rect2D rec=Rect2D::from_center(cntr,fabs(dst.x),fabs(dst.y));
     region[0]=rec;
-    //                        qDebug() << " WM      TOP LEFT.x = " <<wm->region2_tl.x << "    TOP LEFT . Y =  " << wm->region2_tl.y;
-    //                        qDebug() << " WM      BOTTOM RIGHT.x = " <<wm->region2_br.x << "    BOTTOM ROGHT . Y =  " << wm->region2_br.y;
+    //        qDebug() << " WM      TOP LEFT.x = " <<wm->region2_tl.x << "    TOP LEFT . Y =  " << wm->region2_tl.y;
+    //        qDebug() << " WM      BOTTOM RIGHT.x = " <<wm->region2_br.x << "    BOTTOM ROGHT . Y =  " << wm->region2_br.y;
     //        region[0].assign(wm->region1_tl,size1);//=wm->region1;
     dst=wm->region2_br-wm->region2_tl;
     cntr=wm->region2_br+wm->region2_tl;
@@ -313,26 +341,27 @@ void TacticTransferObject::sortData()
 
 Vector2D TacticTransferObject::KeepInField(RobotCommand rc)
 {
-    if(rc.fin_pos.loc.x > MAX_X)
+    double margin=300;
+    if(rc.fin_pos.loc.x > MAX_X - margin)
     {
         rc.fin_pos.loc = Vector2D(MAX_X,rc.fin_pos.loc.y);
-        qDebug() << " X > MAX_X !! ";
+//        qDebug() << " X > MAX_X !! ";
     }
-    else if(rc.fin_pos.loc.x < MIN_X)
+    else if(rc.fin_pos.loc.x < MIN_X + margin)
     {
         rc.fin_pos.loc = Vector2D(MIN_X,rc.fin_pos.loc.y);
-        qDebug() << " X < MIN_X !! ";
+//        qDebug() << " X < MIN_X !! ";
     }
 
-    if(rc.fin_pos.loc.y > MAX_Y)
+    if(rc.fin_pos.loc.y > MAX_Y-margin)
     {
         rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MAX_Y);
-        qDebug() << " Y > MAX_Y !! ";
+//        qDebug() << " Y > MAX_Y !! ";
     }
-    else if(rc.fin_pos.loc.y < MIN_Y)
+    else if(rc.fin_pos.loc.y < MIN_Y+margin)
     {
         rc.fin_pos.loc = Vector2D(rc.fin_pos.loc.x,MIN_Y);
-        qDebug() << " Y < MIN_Y !! ";
+//        qDebug() << " Y < MIN_Y !! ";
     }
 
     return rc.fin_pos.loc;
@@ -346,7 +375,7 @@ Vector2D TacticTransferObject::AvoidtoEnterCircle(Circle2D Ci, Vector2D pnt, Vec
     if(Ci.HasIntersection(S) || Ci.contains(pnt) || Ci.contains(finPOS))
     {
         //        qDebug() << " HAS INTERSECTION WITH CIRCLE !! DO NOT ENTER THIS CIRCLE PLEASE !!!";
-        //        qDebug() << " HAS INTERSECTION WITH CIRCLE ( " << Ci.center().x << "," << Ci.center().y << " ) , Radius : " << Ci.radius() ;
+//                qDebug() << " HAS INTERSECTION WITH CIRCLE ( " << Ci.center().x << "," << Ci.center().y << " ) , Radius : " << Ci.radius() ;
         Vector2D c2r = pnt - Ci.center() ;
         Vector2D c2f = finPOS - Ci.center() ;
         c2r.setLength(Ci.radius()+50);
@@ -366,8 +395,8 @@ Vector2D TacticTransferObject::AvoidtoEnterCircle(Circle2D Ci, Vector2D pnt, Vec
         c2r.setDir(angle);// c2f.dir()));
         Vector2D p = Ci.center() + c2r ;
         //        Avoided=true;
-        //            qDebug() << " Avoided point is : (" << finPOS.x << "," <<finPOS.y << ")  & Corrected is : ("<<
-        //                        p.x << "," << p.y << ")" ;
+//                    qDebug() << " Avoided point is : (" << finPOS.x << "," <<finPOS.y << ")  & Corrected is : ("<<
+//                                p.x << "," << p.y << ")" ;
         return p;
     }
     else
@@ -403,7 +432,7 @@ bool TacticTransferObject::IsInmargins(Vector2D pnt, double margin)
     //
     if((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin) || (pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin))
     {
-        qDebug() << " IS IN MARGIN ";
+//        qDebug() << " IS IN MARGIN ";
         return true;
     }
     else return false;

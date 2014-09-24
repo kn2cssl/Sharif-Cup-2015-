@@ -5,9 +5,9 @@
 
 // global constants
 #define PLAYERS_MAX_NUM 12
-#define FIELD_MAX_X     3025
-#define FIELD_MAX_Y     2025
-#define BALL_RADIUS     22
+#define FIELD_MAX_X     4025
+#define FIELD_MAX_Y     3025
+#define BALL_RADIUS     36
 #define ROBOT_RADIUS    90
 
 #define RIGHT 0
@@ -41,9 +41,9 @@ namespace Field
 //const double MaxY = 2025;
 //const double MinY = -2025;
 
-const double MaxX = 3025;
+const double MaxX = 4000;
 const double MinX = 0;
-const double MaxY = 3025;
+const double MaxY = 4000;
 const double MinY = 0;
 
 

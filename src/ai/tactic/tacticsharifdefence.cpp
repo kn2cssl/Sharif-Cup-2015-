@@ -3,18 +3,6 @@
     TacticSharifDefence::TacticSharifDefence(WorldModel *worldmodel, QObject *parent) :
         Tactic("TacticSharifDefence", worldmodel, parent)
     {
-        Vector2D center;//(1667,110);
-        center=wm->circularBorder.center();
-
-        circularBorder.assign(center,1700/2);
-        circularBorderOut.assign(center,2100/2);// a circle may use to push balls with some risks
-        circularMid.assign(center,720); // a circle which is between holes and border circle
-
-        hole1.assign(wm->goal1.center(),250/2);
-        hole2.assign(wm->goal2.center(),250/2);
-        //        addHolePoints();
-        hole1_Offset.assign(wm->goal1.center(),650/2);
-        hole2_Offset.assign(wm->goal2.center(),650/2);
 
         Vector2D Cdist = (hole1.center() - circularBorder.center());
         double deltaAngle=1.1*asin(hole1.radius()/(Cdist.length())); // 1.1 is safety factor
@@ -33,6 +21,7 @@
 
     RobotCommand TacticSharifDefence::getCommand()
     {
+//        qDebug() << " !!! WELCOME TO THE SHARIF DEFENCE TACTIC !!!";
         RobotCommand rc;
         if(!wm->ourRobot[id].isValid) return rc;
         rc.fin_pos.loc=circularBorder.center(); //
@@ -66,6 +55,7 @@
                 //c2o = new Segment2D(circularBorderOut.center() , balls.at(i) );
                 //temp=0;
                 IsInside   = circularBorder  .contains(balls.at(i)->pos.loc);
+                if(IsInside) qDebug() << " BALL " << i << " IS INSIDE !!" ;
                 Accessible = circularBorderOut.contains(balls.at(i)->pos.loc);
 
                 if(!IsInside) AllIn = false;
@@ -255,22 +245,22 @@
 
         }
 
-        qDebug()<< "INDEX = " << index << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
-        qDebug() << " S T A T E  =  " << state;
+//        qDebug()<< "INDEX = " << index << "fin_pos.x  " << rc.fin_pos.loc.x << "  Y  "<<rc.fin_pos.loc.y<< " ------------------------------ STATE = " << state << "    STATE 2 =" << state2;
+//        qDebug() << " S T A T E  =  " << state;
         qDebug() << " Opp Is In Field : " << oppIsInField << "    AllIn  : " << AllIn << "    Any in :  " << AnyIn ;
 
         rc.fin_pos.loc=AvoidtoEnterCircle(hole1_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
         rc.fin_pos.loc=AvoidtoEnterCircle(hole2_Offset,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
-        qDebug()<<" Detected Ball  Is In = (" << point.x << "," << point.y << ")";
+//        qDebug()<<" Detected Ball  Is In = (" << point.x << "," << point.y << ")";
         //        if(reach) rc.fin_pos.loc=AvoidtoEnterCircle(hole2_Offset,hole2_V,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
 
         //        if(InHole) rc.maxSpeed=1;
         //        rc.useNav=true;
         if(Avoided) rc.maxSpeed *= 0.5;
-        if(oppIsKhoraak) rc.fin_pos.loc=Opp;
+//        if(oppIsKhoraak) rc.fin_pos.loc=Opp;
         //        rc.isBallObs = true;//false;
         //        rc.isKickObs = true;
 
@@ -282,41 +272,24 @@
     {
 
         balls.clear();
-        //balls.insert(0,&wm->ball);//wm->ourRobot[0].pos.loc);
-        //        for(int i=0;i<wm->numberOfBalls;i++)
-        //        {
-        //            //        Aball[i].pos=wm->balls[i].pos;
-        //            this->balls.push_back(wm->ball*[i]);
 
-        //        }
         balls=wm->balls;
-        //balls.insert(1,&wm->ourRobot[1]);
-        //balls.insert(2,wm->ourRobot[2].pos.loc);
 
-//        oppIsInField = wm->oppRobot[7].isValid;
-//        OppositeRobot = wm->oppRobot[7].pos.loc;
+        Vector2D center;//(1667,110);
+        center=wm->circularBorder.center();
 
-        //        firstInit=false;
-        //        loop++;
+
+        circularBorder.assign(center,1700/2);
+        circularBorderOut.assign(center,2100/2);// a circle may use to push balls with some risks
+        circularMid.assign(center,720); // a circle which is between holes and border circle
+
+        hole1.assign(wm->goal1.center(),250/2);
+        hole2.assign(wm->goal2.center(),250/2);
+        //        addHolePoints();
+        hole1_Offset.assign(wm->goal1.center(),650/2);
+        hole2_Offset.assign(wm->goal2.center(),650/2);
+
     }
-    // ==================================================================================
-    //    void TacticSharifDefence::addHolePoints()
-    //    {
-    //        double offset=200+ROBOT_RADIUS;
-    //        Vector2D vec;//=Vector2D(0,0);
-    //        for(int i=0;i<8;i++)
-    //        {
-    //            //            vec.assign(
-    //            vec.assign(((hole1.radius()+offset)*cos(i*M_PI/4)),((hole1.radius()+offset)*sin((i/4)*M_PI)));
-    //            //            vec.y=(hole1.radius()+offset)*sin(double(i/4)*M_PI);
-    //            //            vec.setLength(hole1.radius()+offset);
-    //            //            vec.setDir(double(i/4)*M_PI);
-    //            hole1_V[i]=hole1.center() + vec;
-    //            hole2_V[i]=hole2.center() + vec;
-    //        }
-
-    //    }
-
     // ==================================================================================
     //Vector2D TacticSharifDefence::findnearest(Vector2D input)
     //{

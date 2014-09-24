@@ -18,13 +18,15 @@ public:
     Vector2D findnearest(Vector2D input);
     int findnearestObject(QList<Shape> list,Vector2D Pos);
 
+    bool IsInmargins(Vector2D pnt,double margin);
+
 
 private:
-    QList<Vector2D> agentsPositive;//R0;
+    QList<Shape> agentsPositive;//R0;
     //QList<Vector2D> a4fSorted;
-    QList<Vector2D> agentsNegative;//R1;
+    QList<Shape> agentsNegative;//R1;
     //QList<AgentsAndRegions> mergedList;
-    QList<Segment2D> segList;
+    QList<Segment2D> segList,seglistOffset;
     //QList<Vector2D> a4sSorted;
     Rect2D region[2];
     //Rect2D region2;
@@ -32,8 +34,11 @@ private:
     bool IsOverTheLine;
     bool DoNotEnterOpposedField;
     bool CanKickOpp,OppIsInhisField,OppIsValid;
-    int state;
-    int index;
+    bool reach;
+    Circle2D ObsC;
+    double MAX_X , MAX_Y , MIN_X , MIN_Y , mean_x , mean_y ;
+    int state,statemargin;
+    int index,rad;
     int obs;
     int goalRegion;
     int temp,temp2;
@@ -44,7 +49,8 @@ private:
     Segment2D *r2o; // Robot to Object
     Segment2D *o2o; // Origin to Object
     //Segment2D *seg[2]; // 2 segment line
-    Vector2D origin,origin2,rcpast,Opp;
-    Circle2D ObsC;
+    Vector2D origin,origin2,rcpast,Opp,point2;
+    Vector2D OffsetforSeg;
+
 };
 #endif // TACTICCONFRONT_H
