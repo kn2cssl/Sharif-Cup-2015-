@@ -24,7 +24,7 @@
 
 // Vision constants
 #define CAMERA_NUM      2
-#define VOBJ_MAX_NUM    5
+#define VOBJ_MAX_NUM    50
 #define MIN_CONF        0.1
 #define VISION_TIMEDOUT 1000.0
 #define MAX_RADIOUS     2000

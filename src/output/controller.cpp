@@ -49,7 +49,6 @@ RobotSpeed Controller::calcRobotSpeed_main(ControllerInput &ci)
 
     double ap=2;
     double am=2;
-
     /******************************Linear Speed Controller************************************/
     Vector2D LinearSpeed;
     Vector2D LinearSpeed_past;
@@ -133,7 +132,7 @@ RobotSpeed Controller::calcRobotSpeed_main(ControllerInput &ci)
     werr1 = ci.mid_pos.dir - ci.cur_pos.dir;
     if (werr1 > M_PI) werr1 -= 2 * M_PI;
     if (werr1 < -M_PI) werr1 += 2 * M_PI;
-    if(err1.length()<.4)
+    if(err1.length()<.8)
     {
         if(fabs(werr1)*AngleDeg::RAD2DEG<30)
         {
@@ -412,10 +411,12 @@ MotorSpeed Controller::calcReal(RobotSpeed rs)
 
     MotorSpeed result;
 
-    result.M0 = (motor[0][0]);
-    result.M1 = (motor[1][0]);
-    result.M2 = (motor[2][0]);
+    result.M0 = (motor[0][0]);rs.VX*2000;
+    result.M1 = (motor[1][0]);rs.VY*2000;
+    result.M2 = (motor[2][0]);rs.VW*2000;
     result.M3 = (motor[3][0]);
+  //    qDebug()<<"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:"<<"M0:"<<result.M0<<"M1:"<<result.M1<<"M2:"<<result.M2;
+
 
     //    double max = max4(fabs(result.M0),fabs(result.M1),fabs(result.M2),fabs(result.M3));
 

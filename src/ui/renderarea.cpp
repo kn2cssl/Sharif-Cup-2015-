@@ -48,20 +48,29 @@
         painter.setBrush(*brush_field);
         painter.drawRect(CENTER_X,CENTER_Y-154,275,280); // Draw Camera region
 
-        //      // //    Draw circle FOR MISION III
+        //      // //    Draw circle FOR MISION III////////////////////////////////////mohsen
         if(_sc->wm->mission==3)
         {
-            painter.setBrush(*brush_field);
-            painter.drawRect(CENTER_X-25,CENTER_Y-175,350,350);
-
-            painter.setPen(QColor::fromRgb(0,0,0));
             Vector2D center;
             center=_sc->wm->circularBorder.center();
             center.x /= WORLD_SCALE;
             center.y /= WORLD_SCALE;
-            painter.drawEllipse(QPoint(center.x+CENTER_X,-center.y+CENTER_Y),175,175);//17+150+CENTER_X,-11+CENTER_Y),175,175);//200/2,200/2);
+
+            painter.setBrush(*brush_field);
+            int width,height;
+            width=350;
+            height=350;
+            painter.drawRect(CENTER_X+center.x-width/2,CENTER_Y-center.y-height/2,350,350);
+
+            painter.setPen(QColor::fromRgb(0,0,0));
+
+            painter.setPen(QColor::fromRgb(0,51,100));
+            painter.drawEllipse(QPoint(center.x+CENTER_X,-center.y+CENTER_Y),85,85);//17+150+CENTER_X,-11+CENTER_Y),175,175);//200/2,200/2);
             painter.setPen(QColor::fromRgb(204,51,0));
-            painter.drawEllipse(QPoint(center.x+CENTER_X,-center.y+CENTER_Y),175/2,175/2);
+            painter.drawEllipse(QPoint(center.x+CENTER_X,-center.y+CENTER_Y),125,125);
+            painter.setPen(QColor::fromRgb(0,51,100));
+            painter.drawEllipse(QPoint(center.x+CENTER_X,-center.y+CENTER_Y),85,85);
+
             //               H O L E S
             painter.setBrush(*brush_holes);
             Vector2D HoleCenter;

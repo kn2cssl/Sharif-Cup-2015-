@@ -10,7 +10,7 @@ MobileObject::MobileObject() :
     connect(&timer_seen, SIGNAL(timeout()), this, SLOT(timer_seen_timeout()));
     connect(&timer_vel, SIGNAL(timeout()), this, SLOT(timer_vel_timeout()));
 
-    timer_seen_interval = 2000;
+    timer_seen_interval = 100;//amin => sharif cup 1394   /last == 2000
     timer_vel_interval  = 40;
 
     for(int i=0; i<LAST_COUNT; i++)

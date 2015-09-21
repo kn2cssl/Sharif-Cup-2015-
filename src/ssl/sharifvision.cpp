@@ -1,4 +1,4 @@
-#include "sharifvision.h"
+ #include "sharifvision.h"
 
 SharifVision::SharifVision(QString ip, int port, WorldModel *wm, QObject *parent) :
     SharifReceiver(ip,port,parent),
@@ -16,6 +16,8 @@ SharifVision::SharifVision(QString ip, int port, WorldModel *wm, QObject *parent
 
 void SharifVision::parse(outputPacket &msg)
 {
+    qDebug()<<msg.type();
+
     if(msg.type() == 0)
     {
         _wm->mission = msg.mission();
@@ -214,7 +216,7 @@ void SharifVision::parse(outputPacket &msg)
 
                         good.push_back(candidate.at(i));
                         //                    qDebug() << " Befor Being good  : " << good.last().frameCount;
-                        good.last().frameCount = 160;
+                        good.last().frameCount = 75;//160
                         //                    qDebug() << " after Being good  : " << good.last().frameCount;
                         candidate.removeAt(i);
                         //                    }
@@ -231,7 +233,7 @@ void SharifVision::parse(outputPacket &msg)
 
                         good.push_back(candidate.at(i));
                         //                    qDebug() << " Befor Being good  : " << good.last().frameCount;
-                        good.last().frameCount = 100;
+                        good.last().frameCount = 150;
                         //                    qDebug() << " after Being good  : " << good.last().frameCount;
                         candidate.removeAt(i);
                         //                    }
@@ -314,7 +316,7 @@ void SharifVision::parse(outputPacket &msg)
                 //                cyan
 
                 //                if(good.at(i).color == "yellow" || good.at(i).color == "blue" || good.at(i).color == "violet")
-                if((good.at(i).color=="yellow"||good.at(i).color=="blue") && ( good.at(i).type=="PENTA" || good.at(i).type=="TRI" ))// || good.at(i).type=="")
+                if((good.at(i).color=="yellow"||good.at(i).color=="violet") && ( good.at(i).type=="PENTA" || good.at(i).type=="TRI" ))// || good.at(i).type=="")
                 {
                     addToRegion1(good.at(i));
                 }
@@ -337,14 +339,26 @@ void SharifVision::parse(outputPacket &msg)
             findFarestRobot();
             for(int i=0;i<good.size();i++)
             {
-                if(good.at(i).type =="RECT" || good.at(i).type =="CIR")
-                {
-                    addToNegative(good.at(i));
-                }
-                else if(good.at(i).type =="TRI" || good.at(i).type =="PENTA")
-                {
-                    addToPositive(good.at(i));
-                }
+//                if(  good.at(i).type =="PENTA" || good.at(i).type == "CIR")
+//                {
+//                    addToNegative(good.at(i));
+//                }
+//                else if( good.at(i).type == "TRI" || good.at(i).type =="RECT")
+//                {
+//                    addToPositive(good.at(i));
+//                }
+
+
+                                if(  good.at(i).color=="violet" )//|| good.at(i).color=="yellow")
+                                {
+                                    addToNegative(good.at(i));
+                                }
+                                else if(good.at(i).color=="yellow" || good.at(i).color=="blue" ||good.at(i).color=="green" )
+                                {
+                                    addToPositive(good.at(i));
+                                }
+
+
             }
         }
         else if(msg.mission() == 3)

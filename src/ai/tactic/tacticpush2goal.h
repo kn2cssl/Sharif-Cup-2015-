@@ -27,12 +27,12 @@ private:
     bool firstInit;
     bool IsInside,unAccessible,AllIn,AnyIn,AllInCorner,AllUnAccessible;
     bool DontEnterCircle,oppIsValid,OppIsKhoraak;
-    bool Avoided;
+    bool Avoided,AvoidCommand;
     int state,state2,statemargin;
     int index;
     int temp,temp2;
     int count;
-    Circle2D circularBorder,circularBorderOut,circularBorderDANGER,circularBorder2,hole1,hole2,hole1_Offset,hole2_Offset;
+    Circle2D circularBorder,circularBorderOut,circularBorderDANGER,circularBorder2,hole1,hole2,hole1_Offset,hole2_Offset,C2;
     Segment2D *c2o; // cCenter to Object
     Vector2D vec2goal,diff2,opp;//origin,origin2;
     Vector2D point2;

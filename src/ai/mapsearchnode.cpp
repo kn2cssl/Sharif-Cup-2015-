@@ -52,11 +52,11 @@ bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch, MapSe
     if(wm->ball.isValid && (isBallObs || (isKickObs && fabs(bang) > M_PI_4 * 3 / 4)))
     {
         //qDebug() << "ball is obs";
-        Circle2D bc(wm->ball.pos.loc, ROBOT_RADIUS + BALL_RADIUS);
+        Circle2D bc(wm->ball.pos.loc, ROBOT_RADIUS*4 + BALL_RADIUS);
         if(bc.contains(vec))
         {
             int    p_count = 8;
-            double p_dist = ROBOT_RADIUS * 2 + BALL_RADIUS;
+            double p_dist = ROBOT_RADIUS * 4 + BALL_RADIUS;
 
             for(int i=0; i<p_count; i++)
             {
@@ -81,8 +81,8 @@ bool MapSearchNode::GetSuccessors(AStarSearch<MapSearchNode> *astarsearch, MapSe
 
     for(int i=0; i<obs.size(); i++)
     {
-        int    p_count = 6;
-        double p_dist  = ROBOT_RADIUS * 2 + BALL_RADIUS;
+        int    p_count = 12;
+        double p_dist  = ROBOT_RADIUS * 4 + BALL_RADIUS;
 
         for(int j=0; j<p_count; j++)
         {
@@ -130,86 +130,6 @@ QList<Circle2D> MapSearchNode::getObsCircle()
 
     double b_rad = ROBOT_RADIUS + BALL_RADIUS;
     double r_rad = ROBOT_RADIUS * 2;
-
-//    if(isBallObs && wm->ball.isValid)
-//    {
-//        for(int i=0;i<wm->balls.size();i++)
-//        {
-//        Circle2D c(wm->balls.at(i)->pos.loc, b_rad);
-//        result.append(c);
-//        }
-//    }
-
-//    if(!isBallObs && isKickObs && wm->ball.isValid)
-//    {
-//        Position rpos = wm->ourRobot[selfRobot].pos;
-//        Vector2D bloc = wm->ball.pos.loc;
-
-//        double bang = (bloc - rpos.loc).dir().radian() - rpos.dir;
-//        if (bang >  M_PI) bang -= 2 * M_PI;
-//        if (bang < -M_PI) bang += 2 * M_PI;
-
-//        if(fabs(bang) > M_PI_4 * 3 / 4)
-//        {
-//            Circle2D c(wm->ball.pos.loc, b_rad);
-//            result.append(c);
-//        }
-//    }
-
-//    for(int i=0; i<PLAYERS_MAX_NUM; i++)
-//    {
-//        if(i == selfRobot) continue;
-//        if(!wm->ourRobot[i].isValid) continue;
-//        Circle2D c(wm->ourRobot[i].pos.loc, r_rad);
-//        result.append(c);
-//    }
-
-//    for(int i=0; i<PLAYERS_MAX_NUM; i++)
-//    {
-//        if(!wm->oppRobot[i].isValid) continue;
-//        Circle2D c(wm->oppRobot[i].pos.loc, r_rad);
-//        result.append(c);
-//    }
-
-    // MISION I    ------------------------------------------------
-//    qDebug() << "SHAPES 4 Region 1 " << wm->shapes4Region1.size();
-//    for(int i=0; i<wm->shapes4Region1.size(); i++)
-//    {
-//        Circle2D c(wm->shapes4Region1.at(i).position, 10*wm->shapes4Region1.at(i).roundedRadios + 150 );
-////        qDebug()<< " NAVIGATION ADDED FOR CIRCLE at (" <<c.center().x << "," << c.center().y << " )  and radius : " << c.radius() ;
-//        result.append(c);
-//    }
-//    for(int i=0; i<wm->shapes4Region2.size(); i++)
-//    {
-//        Circle2D c(wm->shapes4Region2.at(i).position, 10*wm->shapes4Region2.at(i).roundedRadios + 150 );
-//        result.append(c);
-////        qDebug()<< " .................... NAVIGATION FOR SHAPES4REGION 2 ADDED ..................";
-//    }
-
-//    // MISION II   ------------------------------------------------
-//    for(int i=0; i<wm->negativeShapes.size(); i++)
-//    {
-//        Circle2D c(wm->negativeShapes.at(i).position, 10*wm->negativeShapes.at(i).roundedRadios + 150);
-//        result.append(c);
-////        qDebug()<< " NAVIGATION ADDED FOR CIRCLE at (" <<c.center().x << "," << c.center().y << " )  and radius : " << c.radius() ;
-//    }
-
-//    for(int i=0; i<wm->positiveShapes.size(); i++)
-//    {
-//        Circle2D c(wm->positiveShapes.at(i).position, 10*wm->positiveShapes.at(i).roundedRadios + 150);
-//        result.append(c);
-////        qDebug()<< " NAVIGATION ADDED FOR CIRCLE at (" <<c.center().x << "," << c.center().y << " )  and radius : " << c.radius() ;
-//    }
-////    qDebug() << " MISION = " << wm->mission ;
-//    // MISION III   ------------------------------------------------
-//    if(wm->mission == 3)
-//    {
-//        Circle2D hole1(Vector2D(1500,1700/4),ROBOT_RADIUS+250/2+100);
-//        Circle2D hole2(Vector2D(1500,-1700/4),ROBOT_RADIUS+250/2+100);
-//        result.append(hole1);
-//        result.append(hole2);
-////        qDebug() << " !!!!!!!!!!   HOLES ADDED   !!!!!!!!!!!";
-//    }
 
 
     return result;
