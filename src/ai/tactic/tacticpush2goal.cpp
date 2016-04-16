@@ -15,11 +15,11 @@ TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
 
     Vector2D SafePoint=Vector2D(500,0);
 
-        MAX_X = 2570; MIN_X=0;
-        MAX_Y = 1950; MIN_Y=-1520;//750;
+    MAX_X = 3500; MIN_X=0;
+    MAX_Y = 1750; MIN_Y=-1750;//750;
 
-//    MAX_X = wm->circularBorder.center().x+3500/2; MIN_X=wm->circularBorder.center().x-3500/2;
-//    MAX_Y = wm->circularBorder.center().y+3500/2; MIN_Y=wm->circularBorder.center().y-3500/2;
+    //    MAX_X = wm->circularBorder.center().x+3500/2; MIN_X=wm->circularBorder.center().x-3500/2;
+    //    MAX_Y = wm->circularBorder.center().y+3500/2; MIN_Y=wm->circularBorder.center().y-3500/2;
 
 
     mean_x=(MAX_X+MIN_X) / 2;
@@ -31,12 +31,14 @@ TacticPush2Goal::TacticPush2Goal(WorldModel *worldmodel, QObject *parent) :
 
 RobotCommand TacticPush2Goal::getCommand()
 {
-    oppIsValid = wm->ourRobot[0].isValid;//wm->theirRobot.IsValid;// opposite robot
+    oppIsValid = false;//wm->ourRobot[0].isValid;//wm->theirRobot.IsValid;// opposite robot
+
     addData();
 
     sortData();
+
     if(!oppIsValid) opp = Vector2D(1000000,1000000);
-    opp = wm->ourRobot[0].pos.loc;//wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
+    //opp = wm->ourRobot[0].pos.loc;//wm->theirRobot.position;//wm->ourRobot[8].pos.loc;
     OppIsKhoraak=false;//(!circularBorder2.contains(opp));//out of his field
     bool reach=false;
     Avoided=false;
@@ -48,7 +50,7 @@ RobotCommand TacticPush2Goal::getCommand()
 
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
-    rc.fin_pos.loc=Vector2D(1650,300);//circularBorder.center();
+    rc.fin_pos.loc=Vector2D(500,0);//circularBorder.center();
     rc.maxSpeed = 1.2;
 
 
@@ -140,7 +142,7 @@ RobotCommand TacticPush2Goal::getCommand()
 
     if( index == -1)//#100
     {
-        rc.fin_pos.loc = Vector2D (0,0);
+        rc.fin_pos.loc = Vector2D (500,0);
     }
 
     else
@@ -164,7 +166,7 @@ RobotCommand TacticPush2Goal::getCommand()
 
                 vec2goal.setLength(250);
                 // //**//**qDebug()<<"VEC 2 GOAL LENGTH = " << vec2goal.length();
-                rc.maxSpeed=1;
+                rc.maxSpeed=0.8;
                 rc.useNav = false;//true;
                 rc.isBallObs = false;//true;
                 rc.isKickObs = false;//true;
@@ -189,7 +191,7 @@ RobotCommand TacticPush2Goal::getCommand()
                 vec2goal.setLength(ROBOT_RADIUS+50);
                 rc.fin_pos.loc=nearstpoint-vec2goal;
                 rc.fin_pos.dir=vec2goal.dir().radian();//(point2-wm->ourRobot[id].pos.loc).dir().radian();// //////////////////////// CHANGED !!!
-                rc.maxSpeed=1;
+                rc.maxSpeed=0.8;
 
 
 
@@ -223,7 +225,7 @@ RobotCommand TacticPush2Goal::getCommand()
 
                 vec2goal.setLength(300);
                 // //**//**qDebug()<<"VEC 2 GOAL LENGTH = " << vec2goal.length();
-                rc.maxSpeed=1;
+                rc.maxSpeed=0.8;
                 rc.useNav = false;//true;
                 rc.isBallObs = false;//true;
                 rc.isKickObs = false;//true;
@@ -249,7 +251,7 @@ RobotCommand TacticPush2Goal::getCommand()
                 rc.fin_pos.dir=vec2goal.dir().radian();//(point2-wm->ourRobot[id].pos.loc).dir().radian();// //////////////////////// CHANGED !!!
                 vec2goal.setLength(100);
                 rc.fin_pos.loc=point2 + vec2goal;
-                rc.maxSpeed=1;
+                rc.maxSpeed=0.8;
 
                 if(((wm->ourRobot[id].pos.loc-point2).length())>400) state2=0;
 
@@ -271,7 +273,7 @@ RobotCommand TacticPush2Goal::getCommand()
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    int mrgn=200;
+    int mrgn=300;
     Vector2D dlta;
     if(IsInmargins(point2,mrgn))
     {
@@ -286,6 +288,14 @@ RobotCommand TacticPush2Goal::getCommand()
         switch(statemargin)
         {
         case 0:{
+            if(point2.x > MAX_X-mrgn)
+                dlta.x=-70;
+            else if(point2.x < MIN_X+mrgn)
+                dlta.x=+70;
+            if(point2.y > MAX_Y-mrgn)
+                dlta.y=-70;
+            else if(point2.y < MIN_Y+mrgn)
+                dlta.y=+70;
 
             rc.fin_pos.loc=point2+dlta;
 
@@ -391,8 +401,8 @@ RobotCommand TacticPush2Goal::getCommand()
     //rc.fin_pos.loc= Vector2D (0,0);
 
     //qDebug()<<"state2="<<state2;
-  //  qDebug() << " State : " << state << " , State 2 : " << state2 << " , State Marg : " << statemargin <<" , MAX SPEED :" << rc.maxSpeed << "  ,  Dist : " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
-//    rc.fin_pos.loc = KeepInField(rc);
+    //  qDebug() << " State : " << state << " , State 2 : " << state2 << " , State Marg : " << statemargin <<" , MAX SPEED :" << rc.maxSpeed << "  ,  Dist : " << (rc.fin_pos.loc-wm->ourRobot[id].pos.loc).length();
+    //    rc.fin_pos.loc = KeepInField(rc);
     //rc.fin_pos.dir=(point2-wm->ourRobot[id].pos.loc).dir().radian();
     return rc;
 
@@ -410,15 +420,15 @@ void TacticPush2Goal::addData()
 
     Vector2D center;//(1667,110);
     center=wm->circularBorder.center();
-    circularBorder      .assign(center,850);//+ROBOT_RADIUS);
-    circularBorderOut   .assign(center,1650);
+    circularBorder      .assign(center,900);//+ROBOT_RADIUS);
+    circularBorderOut   .assign(center,1500);
     //  circularBorderDANGER.assign(center,520);//+200);
     //   circularBorder2     .assign(center,520);
 
-    hole1.assign(wm->goal1.center(),150);//250
-    hole2.assign(wm->goal2.center(),150);
-    hole1_Offset.assign(wm->goal1.center(),250);//300
-    hole2_Offset.assign(wm->goal2.center(),250);
+    hole1.assign(wm->goal1.center(),140);//250
+    hole2.assign(wm->goal2.center(),140);
+    hole1_Offset.assign(wm->goal1.center(),200);//300
+    hole2_Offset.assign(wm->goal2.center(),200);
 
     //balls.insert(1,wm->ourRobot[1].pos.loc);
     //balls.insert(2,wm->ourRobot[2].pos.loc);
@@ -455,14 +465,15 @@ void TacticPush2Goal::sortData()
         //{
         for(int k=i+1;k<balls.size();k++)
         {
-            if( (0.1*((balls.at(i)->pos.loc-circularBorder.center()).length2())+0.9*((balls.at(i)->pos.loc-wm->ourRobot[id].pos.loc).length2()))
-                    > (0.1*((balls.at(k)->pos.loc-circularBorder.center()).length2())+0.9*((balls.at(k)->pos.loc-wm->ourRobot[k].pos.loc).length2())) ) balls.swap(i,k);
+            if( (0.8*((balls.at(i)->pos.loc-circularBorder.center()).length2())+0.2*((balls.at(i)->pos.loc-wm->ourRobot[id].pos.loc).length2()))
+                    > (0.8*((balls.at(k)->pos.loc-circularBorder.center()).length2())+0.2*((balls.at(k)->pos.loc-wm->ourRobot[id].pos.loc).length2())) ) balls.swap(i,k);
         }
         //}
 
     }
 
 }
+
 // =================================================================================
 Vector2D TacticPush2Goal::GoOncircle(Vector2D center, double radius)//, Vector2D Object)
 {

@@ -33,9 +33,21 @@
         InHole=false;
         Avoided=false;
         bool reach;
-        oppIsInField=wm->ourRobot[0].isValid;//wm->ourRobot[0].isValidwm;//->theirRobot.IsValid;//;
-        Opp=wm->theirRobot.position;//wm->ourRobot[7].pos.loc;
-        oppIsKhoraak=circularBorder.contains(Opp);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        oppIsInField=wm->oppRobot[4].isValid;//wm->ourRobot[0].isValid;//wm->ourRobot[0].isValidwm;//->theirRobot.IsValid;//;
+         if(oppIsInField)       Opp=wm->oppRobot[4].pos.loc;//wm->ourRobot[7].pos.loc;
+         else Opp=Vector2D(10000,10000);
+        oppIsKhoraak=false;//circularBorder.contains(Opp);
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//        oppIsInField=wm->theirRobot.IsValid;//wm->ourRobot[0].isValid;//wm->ourRobot[0].isValidwm;//->theirRobot.IsValid;//;
+//         if(oppIsInField)       Opp=wm->theirRobot.position;//wm->ourRobot[7].pos.loc;
+//         else Opp=Vector2D(10000,10000);
+//        oppIsKhoraak=false;//circularBorder.contains(Opp);
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
         addData();
 
@@ -555,21 +567,23 @@
         if(oppIsInField)
         {
             rc.maxSpeed=3;
-            Vector2D safenearstpoint=circularBorderin.nearestpoint(wm->theirRobot.position);
-            Vector2D center2opp=wm->theirRobot.position-circularBorderin.center();
+            Vector2D safenearstpoint=circularBorderin.nearestpoint(Opp);
+            Vector2D center2opp=Opp-circularBorderin.center();
             rc.fin_pos.dir = center2opp.dir().radian() ;
             //center2opp.setLength()
             rc.fin_pos.loc=safenearstpoint;
-           // rc.fin_pos.loc=AvoidtoEnterCircle(circularBorderin,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
-            //qDebug()<< " qq !!!";
+            rc.fin_pos.loc=AvoidtoEnterCircle(circularBorderin,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
+
 
 
         }
 
         else
         {
-            rc.fin_pos.dir = 0 ;
-            rc.fin_pos.loc=Vector2D (1500,300);
+            rc.fin_pos.loc=Vector2D (1500,0);
+            Vector2D center2r=rc.fin_pos.loc-circularBorderin.center();
+            rc.fin_pos.dir = center2r.dir().radian() ;
+
         }
 
 
@@ -596,7 +610,7 @@
 //        if(Avoided)
             rc.maxSpeed *= 1;
 
-
+        qDebug() << " RC MAX SPEED " << rc.maxSpeed;
 //        if(oppIsKhoraak) rc.fin_pos.loc=Opp;
         //        rc.isBallObs = true;//false;
         //        rc.isKickObs = true;
@@ -612,7 +626,7 @@
 
         balls=wm->balls;
 
-        wm->theirRobot.position = wm->ourRobot[0].pos.loc;
+        //wm->theirRobot.position = wm->ourRobot[0].pos.loc;
 
         Vector2D center;//(1667,110);
         center=wm->circularBorder.center();
@@ -620,7 +634,7 @@
 
         circularBorder.assign(center,850);
         circularBorderOut.assign(center,2100/2);// a circle may use to push balls with some risks
-        circularBorderin.assign(center,450);
+        circularBorderin.assign(center,500);
         circularMid.assign(center,720); // a circle which is between holes and border circle
 
         hole1.assign(wm->goal1.center(),150);

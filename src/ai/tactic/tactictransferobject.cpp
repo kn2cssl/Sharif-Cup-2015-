@@ -10,8 +10,10 @@ TacticTransferObject::TacticTransferObject(WorldModel *worldmodel, QObject *pare
     //index=0;
     firstInit=true;//false;
 
-    MAX_X = 1750; MIN_X=-1750;
+    MAX_X = 3500; MIN_X=0;
     MAX_Y = 1750; MIN_Y=-1750;//750;
+
+
     mean_x=(MAX_X+MIN_X) / 2;
     mean_y=(MAX_Y+MIN_Y) / 2;
 
@@ -54,8 +56,8 @@ RobotCommand TacticTransferObject::getCommand()
             break;
         }
 
-
     }
+
     for(int i=0; i<mergedList.size(); i++)
     {
         if(!IsInmargins(mergedList.at(i).pos,300))
@@ -63,6 +65,8 @@ RobotCommand TacticTransferObject::getCommand()
             AllInMargin=false;
         }
     }
+
+
     if(AllInMargin)
     {
         for(int i=0;i<mergedList.size();i++)
@@ -96,6 +100,7 @@ RobotCommand TacticTransferObject::getCommand()
 //     qDebug() << mergedList.size() << " MERGED SIZE " ;
     if(index != -1)
     {
+
         Vector2D point2 = mergedList.at(index).pos;
         Vector2D diff2 = region[goalRegion].center() - point2;
         bool reach=false;
@@ -109,56 +114,83 @@ RobotCommand TacticTransferObject::getCommand()
 
                 Vector2D space2=diff2;
                 space2.setLength(300);
-                rc.maxSpeed=1.4;
+                rc.maxSpeed=1.2;
                 rc.useNav = true;
                 rc.fin_pos.loc=point2 - space2;
                 rc.fin_pos.dir=diff2.dir().radian();
 
                 object=findnearestObject(mergedShapeList,wm->ourRobot[id].pos.loc);
-                if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+150));
+                if(object!=-1) ObsC=Circle2D(mergedShapeList.at(object).position,(mergedShapeList.at(object).roundedRadios+ROBOT_RADIUS+100));
                 rc.fin_pos.loc=AvoidtoEnterCircle(ObsC,wm->ourRobot[id].pos.loc,rc.fin_pos.loc);
 
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,150);
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
                 if(reach) state = 1;
 
             }
                 break;
+
             case 1:{//Ready to Push
+
                 rc.useNav = false;
                 rc.maxSpeed=1.2;
-                rc.fin_pos.loc.x=point2.x - (100 + ROBOT_RADIUS)*(diff2.x)/(diff2.length()); // 100 >> Rounded Radius
-                rc.fin_pos.loc.y=point2.y - (100 + ROBOT_RADIUS)*(diff2.y)/(diff2.length());
+                int side = -1;//agentsNegative.at(index).goalRegion;
+                //space3=diff2;
+                //space3.setlength(100+robotradius);
+                //space3.x=(side)*(100+ROBOT_RADIUS)*(diff2.x)/(diff2.length());
+
+                //shahin
+
+                Vector2D space=diff2;
+                space.setLength(100+ROBOT_RADIUS);
+                rc.fin_pos.loc=point2 - space;
+
+                //shahout
+
+                //**rc.fin_pos.loc.x=point2.x +(side)*(100+ROBOT_RADIUS)*(diff2.x)/(diff2.length());
+                //**rc.fin_pos.loc.y=point2.y +(side)*(100+ROBOT_RADIUS)*(diff2.y)/(diff2.length());
                 rc.fin_pos.dir=diff2.dir().radian();
-                if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,100);
+                if(((wm->ourRobot[id].pos.loc-point2).length())>600)
+                {
+
+                    state=0;
+                }
+                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,70);
                 if(reach)
                     state = 2;
             }
                 break;
+
+
             case 2:{//Push
                 //Vector2D diff2 = region2.center() - wm->ourRobot[id].pos.loc ;
 
                 rc.useNav = false;
-                rc.maxSpeed=1;
+                rc.maxSpeed=1.5;
                 //if(diff2.length() > 1500) diff2.setLength(1500);
                 // if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0;
                 diff2.setLength(300);
-                if(((wm->ourRobot[id].pos.loc-point2).length())>600) state=0;
-                if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<50) state=0;
-                Vector2D o2r = ( point2 - wm->ourRobot[id].pos.loc );
-                if(fabs(wm->ourRobot[id].pos.dir - o2r.dir().radian()) > AngleDeg::deg2rad(40))
-                {
-                    qDebug() << " !!!! Out OF Direction !!!! " ;
-                    state=1;//4;
-                }
+
+
+
+//                Vector2D o2r = ( point2 - wm->ourRobot[id].pos.loc );
+//                if(fabs(wm->ourRobot[id].pos.dir - o2r.dir().radian()) > AngleDeg::deg2rad(40))
+//                {
+//                    qDebug() << " !!!! Out OF Direction !!!! " ;
+//                    state=1;//4;
+//                }
                 rc.fin_pos.loc=point2 + diff2;//5;
                 rc.fin_pos.dir=diff2.dir().radian();
-                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,10);
-                if(reach)
-                    state = 3;
+
+                if(((wm->ourRobot[id].pos.loc-point2).length())>400) state=0; // 60 = Robot Radius + RoundedRadius + 300
+                if(((wm->ourRobot[id].pos.loc-rc.fin_pos.loc).length())<200) state=0; // Do Not Reach The Point , The Object Lost.
+
+
+//                reach=wm->kn->ReachedToPos(wm->ourRobot[id].pos.loc,rc.fin_pos.loc,10);
+//                if(reach)
+//                    state = 3;
             }
                 break;
-            case 3:{//Release
+            case 3:{//Release alaki !!!! if Object Enters The Region , The Object Is Not Important.
 
                 if(region[goalRegion].IsInside(point2))
                 {
@@ -184,15 +216,18 @@ RobotCommand TacticTransferObject::getCommand()
                 break;
             }
         }
+
+
         Vector2D dlta;
         double mrgn=300;
+
         if(IsInmargins(point2,mrgn))
         {
 //            qDebug() << " IS IN MARGIN !!!!!!!!!";
             int side = ((point2.x-mean_x)/abs(point2.x-mean_x))*((point2.y-mean_y)/abs(point2.y-mean_y));
             if(point2.x > MAX_X-mrgn || point2.x < MIN_X+mrgn) {
                 side *= ((point2.y-mean_y)/abs(point2.y-mean_y));
-                dlta=Vector2D(side*10,side*(ROBOT_RADIUS+/*mergedShapeList.at(index).roundedRadios+*/50));}
+                dlta=Vector2D(side*10,side*(ROBOT_RADIUS+/*mergedShapeList.at(index).roundedRadios+*/50));} // side*10 ???????????
             else if(point2.y > MAX_Y-mrgn || point2.y < MIN_Y+mrgn) {
                 side *=((point2.x-mean_x)/abs(point2.x-mean_x));
                 dlta=Vector2D(side*(ROBOT_RADIUS+/*mergedShapeList.at(index).roundedRadios+*/50),side*10);}
@@ -254,12 +289,15 @@ RobotCommand TacticTransferObject::getCommand()
 
     //    rcpast=rc.fin_pos.loc;
 //    qDebug() << " INDEX = " << index ;
-    rc.maxSpeed/=1.4;
 
-    if(IsInmargins(wm->ourRobot[id].pos.loc,500)) rc.maxSpeed /= 1.5 ;
-        rc.fin_pos.loc=KeepInField(rc);
+    rc.maxSpeed/=1.5; // Please Do Not Clear This !!!
+
+//    if(IsInmargins(wm->ourRobot[id].pos.loc,500)) rc.maxSpeed /= 1.5 ;
+//        rc.fin_pos.loc=KeepInField(rc);
 
     //        qDebug() << " This Object Is For Region " << goalRegion ;
+
+    qDebug()<<"state="<<state;
 
     rc.useNav=false;
     rc.isBallObs = false;
@@ -279,7 +317,9 @@ void TacticTransferObject::addData()
         mergedShapeList.push_back(wm->shapes4Region2.at(i));
     }
 
+    // ^^^ merging 2 List to Compare better
     Vector2D dst=wm->region1_br-wm->region1_tl;
+
     Vector2D cntr=wm->region1_br+wm->region1_tl;
     cntr.x /=2; cntr.y /=2 ;
     //        Size2D size1(dst.x,-dst.y);
@@ -326,11 +366,9 @@ void TacticTransferObject::sortData()
     {
         for(int k=i+1;k<mergedList.size();k++)
         {
+
             if( (mergedList.at(i).pos-wm->ourRobot[id].pos.loc).length2()+(mergedList.at(i).pos-region[mergedList.at(i).goalRegion].center()).length2()
                     > (mergedList.at(k).pos-wm->ourRobot[id].pos.loc).length2()+(mergedList.at(k).pos-region[mergedList.at(k).goalRegion].center()).length2() ) mergedList.swap(i,k);
-            //
-            //                if( (mergedList.at(i).pos-wm->ourRobot[id].pos.loc).length2()
-            //                        > (mergedList.at(k).pos-wm->ourRobot[id].pos.loc).length2() ) mergedList.swap(i,k);
 
         }
 

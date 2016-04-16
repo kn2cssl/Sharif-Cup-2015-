@@ -12,8 +12,8 @@ TacticConfront::TacticConfront(WorldModel *worldmodel, QObject *parent) :
 
     OppIsValid = true;
 
-    MAX_X = 2570; MIN_X=0;
-    MAX_Y = 1950; MIN_Y=-1520;//750;
+    MAX_X = 3500; MIN_X=0;
+    MAX_Y = 1750; MIN_Y=-1750;//750;
 
 
     mean_x=(MAX_X+MIN_X) / 2;
@@ -28,8 +28,8 @@ RobotCommand TacticConfront::getCommand()
 {
     RobotCommand rc;
     if(!wm->ourRobot[id].isValid) return rc;
-    OppIsValid=false;//wm->theirRobot.IsValid;//wm->ourRobot[8].isValid;
-    if(OppIsValid) Opp=wm->ourRobot[6].pos.loc;//wm->ourRobot[8].pos.loc;
+    OppIsValid=true;//wm->theirRobot.IsValid;//wm->ourRobot[8].isValid;
+    if(OppIsValid) Opp=Vector2D(1800,-563);//wm->ourRobot[8].pos.loc;
     else Opp=Vector2D(100000,100000);
     OppIsInhisField = true;
     rc.fin_pos.loc=origin;
@@ -694,9 +694,9 @@ RobotCommand TacticConfront::getCommand()
         }
     }
 
-    if(OppIsValid && OppIsInhisField && (wm->ourRobot[id].pos.loc-Opp).length() < 1000 ) DoNotEnterOpposedField=true;
+    if(OppIsValid && OppIsInhisField && (wm->ourRobot[id].pos.loc-Opp).length() < 5000 ) DoNotEnterOpposedField=true;
     if(!OppIsValid || (wm->ourRobot[id].pos.loc-Opp).length() > 1000 ) DoNotEnterOpposedField=false;
-    if(DoNotEnterOpposedField)
+    if(true)//DoNotEnterOpposedField)
     {
         // DO NOT ENTER OPPOSED Field
         Segment2D fin2o(origin , rc.fin_pos.loc );
@@ -705,7 +705,10 @@ RobotCommand TacticConfront::getCommand()
         {
             if(segList.at(j).existIntersection(fin2o))
             {
-                rc.fin_pos.loc=segList.at(j).nearestPoint(rc.fin_pos.loc);
+                //rc.fin_pos.loc=segList.at(j).nearestPoint(rc.fin_pos.loc);
+                //rc.fin_pos.loc.y=+200;
+                rc.fin_pos.loc=Vector2D(1770,500);
+                rc.fin_pos.dir=-M_PI/2;
   //              qDebug() << "DO NOT ENTER OPPOSED REGION";
                 break;
             }
@@ -729,7 +732,7 @@ RobotCommand TacticConfront::getCommand()
 //    rcpast=rc.fin_pos.loc;
 //    qDebug() << "RC FIN POS : (" << rc.fin_pos.loc.x << "," << rc.fin_pos.loc.y << ")";
     //    qDebug() << " DIST To Final Pos = " << (wm->ourRobot[id].pos.loc - rc.fin_pos.loc).length();
-    rc.maxSpeed /= 1.5;
+    rc.maxSpeed /= 1.0;
     rc.useNav=false;
     rc.isBallObs = false;
     rc.isKickObs = true;
@@ -804,12 +807,12 @@ void TacticConfront::addData()
  //   origin=wm->endPoint;//Vector2D(2200,0);
 
     origin=wm->endPoint;
-    origin2=Vector2D(0,0);//A point from the field of enemy...
+    origin2=Vector2D(1925,-1275);//A point from the field of enemy...
 
     //shahin
 
-    safeorigine1=Vector2D(origin.x-200,-1250);
-    safeorigine2=Vector2D(origin.x-200,1480);
+    safeorigine1=Vector2D(0,origin.y-250);
+    safeorigine2=Vector2D(3500,origin.y-250);
 
     safeline = new Segment2D(safeorigine1 , safeorigine2);
 
@@ -906,7 +909,7 @@ bool TacticConfront::IsInmargins(Vector2D pnt, double margin)
 {
     {
         //
-        if((pnt.x > MAX_X-margin) || (pnt.x < MIN_X+margin) || (pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin))
+        if((pnt.y > MAX_Y-margin) || (pnt.y < MIN_Y+margin))
         {
             qDebug() << " IS IN MARGIN ";
             return true;
